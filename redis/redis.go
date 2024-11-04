@@ -6,21 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"redis_test/util"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 )
-
-type user = struct{
-	Name string `json:"Name"`
-	Nickname string `json:"nickName"`
-}
-
-//　汎用repository interface
-type repository interface{
-	New() 
-	Create(c *gin.Context, redisKey string, user user)
-	Get(redisKey string)(string, error)
-}
 
 // redisのrepo
 type redisRepo  struct{
@@ -45,7 +35,7 @@ func(r *redisRepo) Get(redisKey string)(string, error){
 	return redisValue, err
 }
 
-func(r *redisRepo) Create(c *gin.Context, redisKey string, user user){
+func(r *redisRepo) Create(c *gin.Context, redisKey string, user util.User){
 	fmt.Printf("user before json mershal : %+v\n", user)
 	jsonData, err := json.Marshal(user)
 	if err !=nil{
