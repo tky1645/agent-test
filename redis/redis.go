@@ -5,17 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 )
 
 type user = struct{
-	name string `json:"name"`
+	Name string `json:"Name"`
+	Nickname string `json:"nickName"`
 }
 
 //　汎用repository interface
 type repository interface{
 	New() 
-	Create(redisKey string, user user)
+	Create(c *gin.Context, redisKey string, user user)
 	Get(redisKey string)(string, error)
 }
 
@@ -42,10 +44,16 @@ func(r *redisRepo) Get(redisKey string)(string, error){
 	return redisValue, err
 }
 
-func(r *redisRepo) Create(redisKey string, user user){
+func(r *redisRepo) Create(c *gin.Context, redisKey string, user user){
+	fmt.Printf("user before json mershal : %+v\n", user)
 	jsonData, err := json.Marshal(user)
 	if err !=nil{
-		fmt.Println("fail to create redis data")
+		fmt.Println("fail to create json data")
+		return
 	}
-	r.redisConn.Set(context.Background(), redisKey, jsonData, 0)
+	fmt.Printf("jsondata : %s", string(jsonData))
+	status := r.redisConn.Set(c, redisKey, jsonData, 60)
+	if status.Err() != nil {
+		fmt.Println("fail to set redis")
+	}
 }

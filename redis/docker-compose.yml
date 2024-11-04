@@ -9,11 +9,14 @@ services:
     build: .
     depends_on:
       - redis
-    command: ["/go-redis-app"]
+    command: >
+      air /go-redis-app
     ports:
       - 3000:3000
     networks:
       - app-network
+    volumes:
+      - .:/app
     
 networks:
   app-network:

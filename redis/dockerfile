@@ -10,3 +10,5 @@ RUN go mod tidy
 COPY . .
 
 RUN go build -o /go-redis-app .
+
+RUN go install github.com/air-verse/air@latest
