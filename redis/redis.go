@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -52,7 +53,7 @@ func(r *redisRepo) Create(c *gin.Context, redisKey string, user user){
 		return
 	}
 	fmt.Printf("jsondata : %s", string(jsonData))
-	status := r.redisConn.Set(c, redisKey, jsonData, 60)
+	status := r.redisConn.Set(c, redisKey, jsonData, time.Duration(10) * time.Second)
 	if status.Err() != nil {
 		fmt.Println("fail to set redis")
 	}
