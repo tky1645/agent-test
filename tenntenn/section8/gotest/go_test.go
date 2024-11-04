@@ -42,6 +42,4 @@ func Test_calc(t *testing.T){
 		}
 
 	})
-	
-
 }

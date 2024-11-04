@@ -1,8 +1,8 @@
-package section8
+package main
 
-import "sectiomn8/calcPackage"
+import calcPackage "section8/calcPackage"
 
 func main(){
-	println(calc(1,2))
+	println(calcPackage.Calc(1,2))
 }
 
