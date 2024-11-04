@@ -34,15 +34,29 @@ func(r *redisRepo) Get(redisKey string)(string, error){
 	}
 	return redisValue, err
 }
+func(r *redisRepo) GetCount(redisKey string)(int, error){
+	redisValue, err:= r.redisConn.Get(context.Background(), redisKey).Result()
+	if err != redis.Nil &&err !=nil{
+		fmt.Println("fait to get redis data")
+	}
+	var data util.User
+	err = json.Unmarshal([]byte(redisValue), &data)
+	if err != nil {
+		fmt.Println("fait to unmershal redis data")
+    }
+	return data.Count, err
+}
 
 func(r *redisRepo) Create(c *gin.Context, redisKey string, user util.User){
 	fmt.Printf("user before json mershal : %+v\n", user)
+	fmt.Println()
 	jsonData, err := json.Marshal(user)
 	if err !=nil{
 		fmt.Println("fail to create json data")
 		return
 	}
 	fmt.Printf("jsondata : %s", string(jsonData))
+	fmt.Println()
 	status := r.redisConn.Set(c, redisKey, jsonData, time.Duration(10) * time.Second)
 	if status.Err() != nil {
 		fmt.Println("fail to set redis")
