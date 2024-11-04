@@ -1,13 +1,16 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
+	"github.com/gorilla/sessions"
+
+	"github.com/boj/redistore"
 )
-var cookieKey = "key"
+var cookieKey = "cookieKey"
 
 func main() {
 	r := gin.Default()
@@ -57,6 +60,7 @@ func chocklogin(repo repository)gin.HandlerFunc{
 }
 
 func login()error{
+	fmt.Println("call login")
 	return nil
 }
 
@@ -67,7 +71,7 @@ func getSessionID(c  * gin.Context)(string, error){
 
 func loginRequired(c *gin.Context, repo repository){
 	// ログイン
-	fmt.Println("cannot find redis data")
+	fmt.Println("login Required")
 	if err := login();err != nil{
 		fmt.Println("fail to login")
 		c.Abort()
@@ -76,14 +80,16 @@ func loginRequired(c *gin.Context, repo repository){
 	// セッション作成
 	// セッションに登録する情報を生成
 	user := user{
-		name: "starbacks",
+		Name: "starbacks",
+		Nickname: "maccer",
 	}
 	// redisにセッションを登録
-	b := make([]byte, 64)
-	redisKey:= base64.URLEncoding.EncodeToString(b)
-	repo.Create(redisKey, user)
+	uuid, _:= uuid.NewRandom()
+	redisKey := uuid.String()
+	repo.Create(c,redisKey, user)
 	fmt.Println("redis data create")
 
 	// cookieに保存
+	fmt.Println(user)
 	c.SetCookie(cookieKey, redisKey, 60,"/", "localhost", false, true)
 }
