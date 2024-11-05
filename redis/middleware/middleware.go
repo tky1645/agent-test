@@ -17,33 +17,42 @@ func Checklogin(repo util.Repository)gin.HandlerFunc{
 	return func (c *gin.Context)  {
 		fmt.Println("call middleware")
 		// sessionID取得
-		var redisValue string
-		var err error
-		redisKey, sessionErr := getSessionID(c)
-		if sessionErr != nil{
-			fmt.Println("cannot find cookie")
+		if !islogined(c, repo){
 			loginRequired(c, repo)
-		}else if redisValue,err = repo.Get(redisKey); err ==  redis.Nil{
-			// redis確認
-			loginRequired(c, repo)
-		}else if err != nil{
-			fmt.Println(err.Error())
-			c.Abort()
-			return
-		}else{
-			fmt.Println("find id in redis. add count")
-			redisValue, _ := repo.Get(redisKey)
-			var user util.User
-			_ = json.Unmarshal([]byte(redisValue), &user)
-			user.Count += 1
-			repo.Create(c,redisKey,user) 
 		}
-		fmt.Println(redisValue)
+
 		// あればそのままNext()
 		// ない時も諸々の処理を抜けてNext()
 		c.Next()
 		
 	}
+}
+
+func islogined(c *gin.Context, repo util.Repository)bool{
+	var redisValue string
+	var err error
+	redisKey, sessionErr := getSessionID(c)
+	if sessionErr != nil{
+		fmt.Println("cannot find cookie")
+		return false
+	}
+	if redisValue,err = repo.Get(redisKey); err ==  redis.Nil{
+		// redis確認
+		return false
+	}else if err != nil{
+		fmt.Println(err.Error())
+		c.Abort()
+		return false
+	}
+	fmt.Println("find id in redis. add count")
+
+	redisValue, _ = repo.Get(redisKey)
+	var user util.User
+	_ = json.Unmarshal([]byte(redisValue), &user)
+	user.Count += 1
+	repo.Create(c,redisKey,user) 
+
+	return true
 }
 
 func login()error{
