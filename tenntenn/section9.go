@@ -34,7 +34,7 @@ func input(r io.Reader) <-chan string{
 	go func(){
 		s := bufio.NewScanner(r)
 		// s.Scan()は読み込めるデータがあるかどうかをboolで返す
-		// s.Scan()はブロッキング関数なので、入力を待機する間のchに空文字が送信されることはない
+		// s.Scan()はブロッキング関数なので、入力を待機する間のchに空文字が送信されることはない 
 		for s.Scan(){
 			ch <- s.Text()
 		}
