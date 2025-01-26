@@ -1,14 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"goroutine/exercise"
 	"time"
 )
-
-func add(ch chan int, a, b int) {
-	time.Sleep(1 * time.Second)
-	ch <- a + b
-}
 
 func calc(ch chan int, a, b int) {
 	time.Sleep(1 * time.Second)
@@ -25,36 +20,40 @@ func double(ch chan int, a int){
 }
 
 func main() {
-	//時間を計測する
-	start := time.Now()
-	defer func() {
-		fmt.Println(time.Since(start))
-	}()
+	// //時間を計測する
+	// start := time.Now()
+	// defer func() {
+	// 	fmt.Println(time.Since(start))
+	// }()
 
-	ch := make(chan int, 4)
-	slice := []int{1, 2, 3, 4}
-	for _, v := range slice {
-		go calc (ch, v, v)
-	}
-	for _, _ = range slice {
-		time.Sleep(1 * time.Second)
-		fmt.Println(<-ch)
-	}
+	// // channel
+	// ch := make(chan int, 4)
+	// slice := []int{1, 2, 3, 4}
+	// for _, v := range slice {
+	// 	go calc (ch, v, v)
+	// }
+	// for _, _ = range slice {
+	// 	time.Sleep(1 * time.Second)
+	// 	fmt.Println(<-ch)
+	// }
 
-	ch1 := make(chan int, 4)
-	ch2 := make(chan int, 4)
-	for i, _ := range slice {
-		go single(ch1,  i)
-		go double(ch2, i)
-	}
-	for _, _ = range slice {	
-		select {
-		case v:= <-ch1:
-			fmt.Println(v)
-		case v:= <-ch2:
-			fmt.Println(v)
-		}
-	}
+	// // select文
+	// ch1 := make(chan int, 4)
+	// ch2 := make(chan int, 4)
+	// for i, _ := range slice {
+	// 	go single(ch1,  i)
+	// 	go double(ch2, i)
+	// }
+	// for _, _ = range slice {	
+	// 	select {
+	// 	case v:= <-ch1:
+	// 		fmt.Println(v)
+	// 	case v:= <-ch2:
+	// 		fmt.Println(v)
+	// 	}
+	// }
+
+	exercise.Exec()
 
 	
 
