@@ -1,0 +1,55 @@
+# Binaries and build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+build/
+
+# Go specific
+vendor/
+go.sum
+
+# IDE - VS Code
+.vscode/
+*.code-workspace
+
+# IDE - GoLand
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Log files
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*
+
+# OS specific files
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.Trash-*
+
+# Test coverage
+coverage.txt
+coverage.html
+
+# air binary
+tmp/
