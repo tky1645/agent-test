@@ -12,6 +12,9 @@ func NewUserRepository() *UserRepository {
 }
 
 func (r *UserRepository) Save(user entities.User) error {
-	// save user to database
 	return nil
+}
+
+func (r *UserRepository) Create(id int) entities.User {
+	 return entities.NewUser(id, "createJohn")
 }

@@ -10,7 +10,7 @@ import (
 var userRepository = NewUserRepository()
 
 func HandlerGET(c *gin.Context) {
-	user  := entities.NewUser(1, "Johnssttt")
+	user  := userRepository.Create(1)
 	c.JSON(200, user)
 }
 
