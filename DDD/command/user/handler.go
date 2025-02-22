@@ -19,9 +19,10 @@ func HandlerGET(c *gin.Context) {
 }
 
 func HandlerPOST(c *gin.Context) {
-	if err := userService.Create(1,"postJohn"); err !=nil {
+	err := userService.Create(1,"postJohn");
+	if  err !=nil {
 		c.JSON(500, err)
 		return
 	}
-	c.JSON(200, user)
+	c.JSON(200, err)
 }
