@@ -1,6 +1,8 @@
 package user
 
-import "DDD/entities"
+import (
+	"DDD/entities"
+)
 
 var _ IUserRepository = (*UserRepository)(nil)
 
@@ -20,12 +22,19 @@ func (r *UserRepository) Save(user entities.User) error {
 	return nil
 }
 
-func (r *UserRepository) Create(id int) entities.User {
-	user := r.get(id)
-	return entities.NewUser(user.ID, user.Name)
+// Create の戻り値に error を追加してエラーを呼び出し元へ伝播する
+func (r *UserRepository) Create(id int) (entities.User, error) {
+	userData := r.fetchUserData(id)
+	user, err := entities.NewUser(userData.ID, userData.Name)
+	if err != nil {
+		return entities.User{}, err
+	}
+	return user, nil
 }
 
-func (r *UserRepository) get(id int) userTable{
+// get メソッドを fetchUserData に名称変更
+func (r *UserRepository) fetchUserData(id int) userTable {
+    // 仮のデータ取得処理
 	return userTable{
 		ID:   id,
 		Name: "getJohn",

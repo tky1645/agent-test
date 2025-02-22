@@ -2,21 +2,24 @@ package user
 
 // application service
 import (
-	"DDD/entities"
-
 	"github.com/gin-gonic/gin"
 )
 
-var userRepository = NewUserRepository()
-
+var(
+ userRepository = NewUserRepository()
+ userService = NewUserService(*userRepository)
+)
 func HandlerGET(c *gin.Context) {
-	user  := userRepository.Create(1)
+	user,err  := userRepository.Create(1)
+	if err !=nil {
+		c.JSON(500, err)
+		return
+	}
 	c.JSON(200, user)
 }
 
 func HandlerPOST(c *gin.Context) {
-	user  := entities.NewUser(1, "postJohn")
-	if err := userRepository.Save(user); err !=nil {
+	if err := userService.Create(1,"postJohn"); err !=nil {
 		c.JSON(500, err)
 		return
 	}
