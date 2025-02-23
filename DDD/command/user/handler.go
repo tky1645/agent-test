@@ -26,3 +26,8 @@ func HandlerPOST(c *gin.Context) {
 	}
 	c.JSON(200, err)
 }
+
+func HandlerPUT(c *gin.Context){
+	
+	c.JSON(200, nil)
+}
