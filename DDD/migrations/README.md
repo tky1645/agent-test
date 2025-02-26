@@ -5,4 +5,5 @@
   - migrate create -ext sql -dir migrations create_users_table   
 - マイグレーションファイルの編集
   - up,down両方
-- 
+- マイグレーションの実行
+  - 

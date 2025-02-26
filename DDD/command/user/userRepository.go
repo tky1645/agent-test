@@ -40,3 +40,14 @@ func (r *UserRepository) fetchUserData(id int) userTable {
 		Name: "getJohn",
 	}
 }
+
+func (r *UserRepository) GetByID(id string) (entities.User, error) {
+	// TODO: Implement GetByID logic here
+	// For now, return a dummy user
+	return entities.NewUser(1, "getJohn")
+}
+
+func (r *UserRepository) Update(id string, name string) error {
+	// TODO: Implement Update logic here
+	return nil
+}

@@ -27,7 +27,32 @@ func HandlerPOST(c *gin.Context) {
 	c.JSON(200, err)
 }
 
-func HandlerPUT(c *gin.Context){
+func HandlerPUT(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "id is empty"})
+		return
+	}
+
+	var name string
+	if err := c.ShouldBindJSON(&name); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if name == "" {
+		c.JSON(400, gin.H{"error": "name is empty"})
+		return
+	}
 	
-	c.JSON(200, nil)
+
+	err := userService.Update(id, name)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "User updated successfully",
+		"id":      id,
+	})
 }

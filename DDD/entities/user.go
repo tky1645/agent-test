@@ -9,7 +9,7 @@ type User struct {
 
 
 type userName string
-func newUserName(name string) (userName, error) {
+func NewUserName(name string) (userName, error) {
 	if name == "" {
 		return "",fmt.Errorf("name is empty")
 	}
@@ -19,7 +19,7 @@ func newUserName(name string) (userName, error) {
 
 // factory method
 func NewUser(id int, name string)( User, error) {
-	userName, err := newUserName(name)
+	userName, err := NewUserName(name)
 	if err != nil {
 		return User{}, err
 	}

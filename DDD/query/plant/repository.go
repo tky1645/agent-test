@@ -1,15 +1,24 @@
 package plant
 
-import "DDD/entities"
+import (
+	"DDD/entities"
+	"database/sql"
+)
 
 var _ IPlantRepository  = (*Repository)(nil)
 
-type Repository struct {}
+type Repository struct {
+	db *sql.DB
+}
 
 func newRepo()*Repository{
-	return &Repository{}
+	sql.Open("mysql", "user=sampleuser password= samplepass")
+	return &Repository{
+		db: nil,
+	}
 }
 func (r *Repository) create(entities.Plant) error {
+
 	return nil
 }
 
