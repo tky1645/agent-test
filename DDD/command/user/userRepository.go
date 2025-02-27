@@ -51,3 +51,7 @@ func (r *UserRepository) Update(id string, name string) error {
 	// TODO: Implement Update logic here
 	return nil
 }
+
+func (r *UserRepository) Delete(id uint)error{
+	return nil
+}

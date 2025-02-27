@@ -2,6 +2,8 @@ package user
 
 // application service
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,7 +45,7 @@ func HandlerPUT(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "name is empty"})
 		return
 	}
-	
+
 
 	err := userService.Update(id, name)
 	if err != nil {
@@ -53,6 +55,30 @@ func HandlerPUT(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"message": "User updated successfully",
+		"id":      id,
+	})
+}
+
+
+func HandlerDelete(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "id is empty"})
+		return
+	}
+	idUint, err := strconv.ParseUint(id,10,64) 
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = userRepository.Delete(uint (idUint))
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "User deleted successfully",
 		"id":      id,
 	})
 }

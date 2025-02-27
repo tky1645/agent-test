@@ -48,4 +48,5 @@ type IUserRepository interface {
 	Save(user entities.User) error
 	Update(id string, name string) error
 	GetByID(id string) (entities.User, error) // Added GetByID method
+	Delete(id uint)error
 }
