@@ -49,8 +49,16 @@ fmt.Printf("no error")
 	r.Run(":8080")
 
 	//net/httpを使う場合
-	// http.HandleFunc("/ping", func(http.ResponseWriter, *http.Request){
-	// 	fmt.Println("ping pong")
-	// })
-	// http.ListenAndServe(":18080", nil)
+
+	// ginをつかわずにJSONレスポンスを返す場合
+	
+	http.HandleFunc("/ping", func( w http.ResponseWriter,  r *http.Request){
+		fmt.Println("ping pong")
+		
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message": "pong"}`))
+	})
+	http.ListenAndServe(":18080", nil)
+	
 }
