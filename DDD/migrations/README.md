@@ -1,9 +1,13 @@
 # go-migration
 - インストール
-  - go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+  - `go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
 - マイグレーションファイルの生成
-  - migrate create -ext sql -dir migrations create_users_table   
+  - `migrate create -ext sql -dir migrations create_users_table`
 - マイグレーションファイルの編集
   - up,down両方
-- マイグレーションの実行
-  - 
+- マイグレーションの実行方法
+  - `migrate -database "mysql://user:password@tcp(host:port)/dbname" -path migrations up`
+- 特定のバージョンまでmigrateする場合
+  - `migrate -database "mysql://user:password@tcp(host:port)/dbname" -path migrations goto バージョン`
+- バージョンを指定してdownする場合
+  - `migrate -database "mysql://user:password@tcp(host:port)/dbname" -path migrations down バージョン`

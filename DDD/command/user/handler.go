@@ -2,14 +2,16 @@ package user
 
 // application service
 import (
+	"database/sql"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-var(
- userRepository = NewUserRepository()
- userService = NewUserService(*userRepository)
+var (
+	db           *sql.DB                  // Define db here
+	userRepository = NewUserRepository(db) // Pass db to NewUserRepository
+	userService    = NewUserService(*userRepository)
 )
 func HandlerGET(c *gin.Context) {
 	user,err  := userRepository.Create(1)
@@ -55,6 +57,29 @@ func HandlerPUT(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"message": "User updated successfully",
+		"id":      id,
+	})
+}
+
+func HandlerFETCH(c *gin.Context) {
+	id := c.Param("id")
+	user, err := userService.GetByID(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, user)
+}
+
+func HandlerDELETE(c *gin.Context) {
+	id := c.Param("id")
+	err := userService.Delete(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "User deleted successfully",
 		"id":      id,
 	})
 }

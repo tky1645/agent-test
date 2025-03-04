@@ -2,6 +2,9 @@ package user
 
 import (
 	"DDD/entities"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var _ IUserRepository = (*UserRepository)(nil)
@@ -12,10 +15,11 @@ type userTable struct {
 }
 
 type UserRepository struct {
+	db *sql.DB
 }
 
-func NewUserRepository() *UserRepository {
-	return &UserRepository{}
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
 func (r *UserRepository) Save(user entities.User) error {
@@ -43,15 +47,27 @@ func (r *UserRepository) fetchUserData(id int) userTable {
 
 func (r *UserRepository) GetByID(id string) (entities.User, error) {
 	// TODO: Implement GetByID logic here
-	// For now, return a dummy user
+	// Replace with actual database query
+	// Example:
+	// query := "SELECT id, name FROM users WHERE id = ?"
+	// row := r.db.QueryRow(query, id)
 	return entities.NewUser(1, "getJohn")
 }
 
 func (r *UserRepository) Update(id string, name string) error {
 	// TODO: Implement Update logic here
+	// Replace with actual database update
+	// Example:
+	// query := "UPDATE users SET name = ? WHERE id = ?"
+	// _, err := r.db.Exec(query, name, id)
 	return nil
 }
 
-func (r *UserRepository) Delete(id uint)error{
+func (r *UserRepository) Delete(id uint) error {
+	// TODO: Implement Delete logic here
+	// Replace with actual database delete
+	// Example:
+	// query := "DELETE FROM users WHERE id = ?"
+	// _, err := r.db.Exec(query, id)
 	return nil
 }
