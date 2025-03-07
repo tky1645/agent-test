@@ -48,6 +48,7 @@ func main() {
 	r.DELETE("/users/:id", user.HandlerDELETE)
 
 	r.POST("/plants", plant.HandlerPOST)
+	r.GET("/plants", plant.HandlerGETPlants)
 	r.PATCH("/plants/:id", plant.HandlerPATCH)
 
 	r.Run(":8080")

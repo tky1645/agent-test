@@ -13,10 +13,15 @@ import (
 type applicationService struct {
 	repository IPlantRepository
 }
+
 type IPlantRepository interface {
 	create(entities.Plant) error
 	save(entities.Plant) error
 	findByID(int) (entities.Plant, error)
+	FindAll(limit int, offset int) ([]entities.Plant, error)
+}
+
+type PlantRepository interface {
 }
 
 type payloadPost struct {
@@ -113,4 +118,26 @@ func validatePost(p payloadPost) error {
 }
 func validatePatch(p paramPatch) error {
 	return nil
+}
+
+type PlantListRequest struct {
+	Limit  int `json:"limit" binding:"required"`
+	Offset int `json:"offset" binding:"required"`
+}
+
+func HandlerGETPlants(c *gin.Context) {
+	var req PlantListRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	repo := newRepo()
+	plants, err := repo.FindAll(req.Limit, req.Offset)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, plants)
 }

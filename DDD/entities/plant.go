@@ -9,6 +9,8 @@ type Plant struct {
 	ID   int    `json:"id"`
 	Name PlantName `json:"name"`
 	WateringDate *time.Time `json:"watering_date"`
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
 }
 
 type PlantName string
