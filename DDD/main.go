@@ -5,60 +5,50 @@ import (
 	"DDD/query/plant"
 	"database/sql"
 	"fmt"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 )
 
-
-func main (){
+func main() {
 	r := gin.Default()
-// ハンドラーのインスタンス化
-// データベース接続
-cfg := mysql.Config{
-    User:   "sampleuser",
-    Passwd: "samplepass",
-    Net:    "tcp",
-    Addr:   "localhost:3306",
-    DBName: "Watering",
-}
-dsn := cfg.FormatDSN() // 自動的に正しいDSNを生成
 
-db, err := sql.Open("mysql", dsn)
-if err != nil{
-	panic(err)
-}
+	// Database connection
+	cfg := mysql.Config{
+		User:   "sampleuser", // Use environment variables
+		Passwd: "samplepass", // Use environment variables
+		Net:    "tcp",
+		Addr:   "ddd_rdb:3306", // Use environment variables
+		DBName: "sampledb",    // Use environment variables
+	}
+	dsn := cfg.FormatDSN() // Automatically generate the correct DSN
 
-if err := db.Ping(); err!=nil{
-	panic(err)
-}
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 
-fmt.Printf("no error")
+	if err := db.Ping(); err != nil {
+		panic(err)
+	}
 
+	fmt.Println("Database connection successful")
+
+	// Initialize user handlers
+	user.InitHandlers(db)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, "ping pong")
 	})
 	r.GET("/users", user.HandlerGET)
 	r.POST("/users", user.HandlerPOST)
-	r.PUT("/users", user.HandlerPUT)
+	r.PUT("/users/:id", user.HandlerPUT)
+	r.GET("/users/:id", user.HandlerFETCH)
+	r.DELETE("/users/:id", user.HandlerDELETE)
 
 	r.POST("/plants", plant.HandlerPOST)
 	r.PATCH("/plants/:id", plant.HandlerPATCH)
+
 	r.Run(":8080")
-
-	//net/httpを使う場合
-
-	// ginをつかわずにJSONレスポンスを返す場合
-	
-	http.HandleFunc("/ping", func( w http.ResponseWriter,  r *http.Request){
-		fmt.Println("ping pong")
-		
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"message": "pong"}`))
-	})
-	http.ListenAndServe(":18080", nil)
-	
 }

@@ -8,14 +8,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
 var (
-	db           *sql.DB                  // Define db here
-	userRepository = NewUserRepository(db) // Pass db to NewUserRepository
-	userService    = NewUserService(*userRepository)
+	userRepository *UserRepository
+	userService    *UserService
 )
+
+func InitHandlers(db *sql.DB) {
+	userRepository = NewUserRepository(db)
+	userService = NewUserService(*userRepository)
+}
+
 func HandlerGET(c *gin.Context) {
-	user,err  := userRepository.Create(1)
-	if err !=nil {
+	user, err := userRepository.Create(1)
+	if err != nil {
 		c.JSON(500, err)
 		return
 	}
@@ -23,8 +29,8 @@ func HandlerGET(c *gin.Context) {
 }
 
 func HandlerPOST(c *gin.Context) {
-	err := userService.Create(1,"postJohn");
-	if  err !=nil {
+	err := userService.Create(1, "postJohn")
+	if err != nil {
 		c.JSON(500, err)
 		return
 	}
@@ -47,7 +53,6 @@ func HandlerPUT(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "name is empty"})
 		return
 	}
-
 
 	err := userService.Update(id, name)
 	if err != nil {
@@ -84,20 +89,19 @@ func HandlerDELETE(c *gin.Context) {
 	})
 }
 
-
 func HandlerDelete(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(400, gin.H{"error": "id is empty"})
 		return
 	}
-	idUint, err := strconv.ParseUint(id,10,64) 
+	idUint, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = userRepository.Delete(uint (idUint))
+	err = userRepository.Delete(uint(idUint))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

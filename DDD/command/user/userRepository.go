@@ -3,6 +3,7 @@ package user
 import (
 	"DDD/entities"
 	"database/sql"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -19,6 +20,14 @@ type UserRepository struct {
 }
 
 func NewUserRepository(db *sql.DB) *UserRepository {
+	//db, err := sql.Open("mysql", "sampleuser:samplepass@tcp(ddd_rdb:3306)/sampledb")
+	db, err := sql.Open("mysql", "root:rootpassword@tcp(ddd_rdb:3306)/sampledb")
+	if err != nil {
+		fmt.Println("db err", err)
+		panic(err)
+		return &UserRepository{}
+	}
+	fmt.Println("db connect success")
 	return &UserRepository{db: db}
 }
 
@@ -46,28 +55,43 @@ func (r *UserRepository) fetchUserData(id int) userTable {
 }
 
 func (r *UserRepository) GetByID(id string) (entities.User, error) {
-	// TODO: Implement GetByID logic here
-	// Replace with actual database query
-	// Example:
-	// query := "SELECT id, name FROM users WHERE id = ?"
-	// row := r.db.QueryRow(query, id)
-	return entities.NewUser(1, "getJohn")
+	query := "SELECT id, name, email, password FROM users WHERE id = ?"
+	row := r.db.QueryRow(query, id)
+
+	var userId int
+	var userName string
+	var userEmail string
+	var userPassword string
+	err := row.Scan(&userId, &userName, &userEmail, &userPassword)
+	if err != nil {
+		fmt.Println("getByID query error", err)
+		return entities.User{}, err
+	}
+
+	user, err := entities.NewUser(userId, userName)
+	if err != nil {
+		return entities.User{}, err
+	}
+
+	return user, nil
 }
 
 func (r *UserRepository) Update(id string, name string) error {
-	// TODO: Implement Update logic here
-	// Replace with actual database update
-	// Example:
-	// query := "UPDATE users SET name = ? WHERE id = ?"
-	// _, err := r.db.Exec(query, name, id)
+	query := "UPDATE users SET name = ? WHERE id = ?"
+	_, err := r.db.Exec(query, name, id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (r *UserRepository) Delete(id uint) error {
-	// TODO: Implement Delete logic here
-	// Replace with actual database delete
-	// Example:
-	// query := "DELETE FROM users WHERE id = ?"
-	// _, err := r.db.Exec(query, id)
+	query := "DELETE FROM users WHERE id = ?"
+	_, err := r.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
