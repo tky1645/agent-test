@@ -45,12 +45,47 @@ func (r *UserRepository) Create(id int) (entities.User, error) {
 	return user, nil
 }
 
+func (r *UserRepository) GetAll() ([]entities.User, error) {
+	query := "SELECT id, name FROM users"
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := []entities.User{}
+	for rows.Next() {
+		var userData userTable
+		err := rows.Scan(&userData.ID, &userData.Name)
+		if err != nil {
+			return nil, err
+		}
+		user, err := entities.NewUser(userData.ID, userData.Name)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
 // get メソッドを fetchUserData に名称変更
 func (r *UserRepository) fetchUserData(id int) userTable {
     // 仮のデータ取得処理
+	query := "SELECT id, name FROM users WHERE id = ?"
+	row := r.db.QueryRow(query, id)
+
+	var userID int
+	var userName string
+	err := row.Scan(&userID, &userName)
+	if err != nil {
+		fmt.Println("fetchUserData query error", err)
+		return userTable{}
+	}
+
 	return userTable{
-		ID:   id,
-		Name: "getJohn",
+		ID:   userID,
+		Name: userName,
 	}
 }
 

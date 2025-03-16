@@ -3,7 +3,7 @@ package user
 // application service
 import (
 	"database/sql"
-	"strconv"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,95 +19,99 @@ func InitHandlers(db *sql.DB) {
 	userService = NewUserService(*userRepository)
 }
 
+// エラーレスポンスの共通化
+func sendErrorResponse(c *gin.Context, status int, err error) {
+	c.JSON(status, gin.H{"error": err.Error()})
+}
+
+// 成功レスポンスの共通化
+func sendSuccessResponse(c *gin.Context, data interface{}) {
+	c.JSON(200, data)
+}
+
 func HandlerGET(c *gin.Context) {
-	user, err := userRepository.Create(1)
+	users, err := userRepository.GetAll()
 	if err != nil {
-		c.JSON(500, err)
+		sendErrorResponse(c, 500, err)
 		return
 	}
-	c.JSON(200, user)
+	sendSuccessResponse(c, users)
 }
 
 func HandlerPOST(c *gin.Context) {
-	err := userService.Create(1, "postJohn")
-	if err != nil {
-		c.JSON(500, err)
+	// POSTではリクエストボディからデータを受け取るように修正
+	var request struct {
+		Name string `json:"name" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		sendErrorResponse(c, 400, err)
 		return
 	}
-	c.JSON(200, err)
+	
+	err := userService.Create(1, request.Name)
+	if err != nil {
+		sendErrorResponse(c, 500, err)
+		return
+	}
+	sendSuccessResponse(c, gin.H{"message": "User created successfully"})
 }
 
 func HandlerPUT(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		c.JSON(400, gin.H{"error": "id is empty"})
+		sendErrorResponse(c, 400, fmt.Errorf("id is empty"))
 		return
 	}
 
-	var name string
-	if err := c.ShouldBindJSON(&name); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
+	var request struct {
+		Name string `json:"name" binding:"required"`
 	}
-	if name == "" {
-		c.JSON(400, gin.H{"error": "name is empty"})
+	if err := c.ShouldBindJSON(&request); err != nil {
+		sendErrorResponse(c, 400, err)
 		return
 	}
 
-	err := userService.Update(id, name)
+	err := userService.Update(id, request.Name)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		sendErrorResponse(c, 500, err)
 		return
 	}
-
-	c.JSON(200, gin.H{
+	sendSuccessResponse(c, gin.H{
 		"message": "User updated successfully",
-		"id":      id,
+		"id":     id,
 	})
 }
 
-func HandlerFETCH(c *gin.Context) {
+// HandlerFETCHとHandlerDELETEを統合し、命名規則を統一
+func HandlerGetByID(c *gin.Context) {
 	id := c.Param("id")
+	if id == "" {
+		sendErrorResponse(c, 400, fmt.Errorf("id is empty"))
+		return
+	}
+	
 	user, err := userService.GetByID(id)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		sendErrorResponse(c, 500, err)
 		return
 	}
-	c.JSON(200, user)
-}
-
-func HandlerDELETE(c *gin.Context) {
-	id := c.Param("id")
-	err := userService.Delete(id)
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(200, gin.H{
-		"message": "User deleted successfully",
-		"id":      id,
-	})
+	sendSuccessResponse(c, user)
 }
 
 func HandlerDelete(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		c.JSON(400, gin.H{"error": "id is empty"})
-		return
-	}
-	idUint, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		sendErrorResponse(c, 400, fmt.Errorf("id is empty"))
 		return
 	}
 
-	err = userRepository.Delete(uint(idUint))
+	err := userService.Delete(id)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		sendErrorResponse(c, 500, err)
 		return
 	}
-	c.JSON(200, gin.H{
+	sendSuccessResponse(c, gin.H{
 		"message": "User deleted successfully",
-		"id":      id,
+		"id":     id,
 	})
 }

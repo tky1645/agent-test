@@ -7,6 +7,7 @@
   - up,down両方
 - マイグレーションの実行方法
   - `migrate -database "mysql://user:password@tcp(host:port)/dbname" -path migrations up`
+  - `migrate -database "mysql://root:password@tcp(localhost:13306)/mydb" -path DDD/migrations up`
 - 特定のバージョンまでmigrateする場合
   - `migrate -database "mysql://user:password@tcp(host:port)/dbname" -path migrations goto バージョン`
 - バージョンを指定してdownする場合

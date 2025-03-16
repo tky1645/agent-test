@@ -1,11 +1,10 @@
-version: "3.8"
 services:
   ddd_app:
     build:
       context: ./
       dockerfile: Dockerfile
     ports:
-      - "8080:8080" # 必要に応じてポートを調整してください
+      - "18080:8080" # 必要に応じてポートを調整してください
     depends_on:
       - ddd_rdb
 
@@ -14,7 +13,7 @@ services:
       context: ./rdb
       dockerfile: Dockerfile
     ports:
-      - "3306:3306" # 必要に応じてポートを調整してください
+      - "13306:3306" # 必要に応じてポートを調整してください
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: mydb

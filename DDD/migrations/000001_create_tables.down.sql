@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS watering_records;
+DROP TABLE IF EXISTS plants;
+DROP TABLE IF EXISTS users; 

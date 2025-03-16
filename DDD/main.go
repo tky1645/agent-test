@@ -44,8 +44,8 @@ func main() {
 	r.GET("/users", user.HandlerGET)
 	r.POST("/users", user.HandlerPOST)
 	r.PUT("/users/:id", user.HandlerPUT)
-	r.GET("/users/:id", user.HandlerFETCH)
-	r.DELETE("/users/:id", user.HandlerDELETE)
+	// r.GET("/users/:id", user.HandlerFETCH)
+	// r.DELETE("/users/:id", user.HandlerDELETE)
 
 	r.POST("/plants", plant.HandlerPOST)
 	r.GET("/plants", plant.HandlerGETPlants)
