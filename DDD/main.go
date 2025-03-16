@@ -5,6 +5,7 @@ import (
 	"DDD/query/plant"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
@@ -19,21 +20,31 @@ func main() {
 		Passwd: "samplepass", // Use environment variables
 		Net:    "tcp",
 		Addr:   "ddd_rdb:3306", // Use environment variables
-		DBName: "sampledb",    // Use environment variables
+		DBName: "mydb",    // Use environment variables
 	}
 	dsn := cfg.FormatDSN() // Automatically generate the correct DSN
 
-	db, err := sql.Open("mysql", dsn)
+	var db *sql.DB
+	var err error
+	const maxRetries = 10
+	for i := 0; i < maxRetries; i++ {
+	db, err = sql.Open("mysql", dsn)
+	if err == nil {
+		err = db.Ping()
+	}
+	if err == nil {
+		fmt.Println("Database connection successful")
+		break
+	}
+	fmt.Printf("MySQL接続失敗 (%d/%d): %v\n", i+1, maxRetries, err)
+		time.Sleep(3 * time.Second)
+	}
+
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("MySQLに接続できませんでした: %v", err))
 	}
 	defer db.Close()
 
-	if err := db.Ping(); err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Database connection successful")
 
 	// Initialize user handlers
 	user.InitHandlers(db)
