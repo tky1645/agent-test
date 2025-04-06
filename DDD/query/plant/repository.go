@@ -23,10 +23,36 @@ func newRepo() *Repository {
 }
 
 func (r *Repository) create(plant entities.Plant) error {
+	query := "INSERT INTO plant (name, watering_date, created_at, updated_at) VALUES (?, ?, NOW(), NOW())"
+	var wateringDate interface{}
+	if plant.WateringDate != nil {
+		wateringDate = plant.WateringDate.Format("2006-01-02")
+	}
+	
+	result, err := r.db.Exec(query, plant.Name, wateringDate)
+	if err != nil {
+		return fmt.Errorf("failed to create plant: %v", err)
+	}
+	
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to get last insert id: %v", err)
+	}
+	plant.ID = int(id)
 	return nil
 }
 
 func (r *Repository) save(plant entities.Plant) error {
+	query := "UPDATE plant SET name = ?, watering_date = ?, updated_at = NOW() WHERE id = ?"
+	var wateringDate interface{}
+	if plant.WateringDate != nil {
+		wateringDate = plant.WateringDate.Format("2006-01-02")
+	}
+	
+	_, err := r.db.Exec(query, plant.Name, wateringDate, plant.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update plant: %v", err)
+	}
 	return nil
 }
 

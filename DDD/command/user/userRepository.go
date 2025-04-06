@@ -32,6 +32,11 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) Save(user entities.User) error {
+	query := "INSERT INTO users (id, name) VALUES (?, ?)"
+	_, err := r.db.Exec(query, user.ID, user.Name)
+	if err != nil {
+		return fmt.Errorf("failed to save user: %v", err)
+	}
 	return nil
 }
 
