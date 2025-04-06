@@ -8,6 +8,12 @@ services:
     depends_on:
       ddd_rdb:
         condition: service_healthy
+    environment:
+      DB_USER: sampleuser
+      DB_PASSWORD: samplepass
+      DB_HOST: ddd_rdb
+      DB_PORT: 3306
+      DB_NAME: sampledb
 
   ddd_rdb:
     build:
@@ -15,6 +21,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "13306:3306" # 必要に応じてポートを調整してください
+    volumes:
+      - db_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: mydb
