@@ -5,6 +5,7 @@ import (
 	"DDD/query/plant"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,27 +17,27 @@ func main() {
 
 	// Database connection
 	cfg := mysql.Config{
-		User:   "sampleuser", // Use environment variables
-		Passwd: "samplepass", // Use environment variables
+		User:   os.Getenv("DB_USER"), // Use environment variables
+		Passwd: os.Getenv("DB_PASSWORD"), // Use environment variables
 		Net:    "tcp",
-		Addr:   "ddd_rdb:3306", // Use environment variables
-		DBName: "mydb",    // Use environment variables
+		Addr:   os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT"), // Use environment variables
+		DBName: os.Getenv("DB_NAME"),    // Use environment variables
 	}
-	dsn := cfg.FormatDSN() // Automatically generate the correct DSN
+	dsn := cfg.FormatDSN()
 
 	var db *sql.DB
 	var err error
 	const maxRetries = 10
 	for i := 0; i < maxRetries; i++ {
-	db, err = sql.Open("mysql", dsn)
-	if err == nil {
-		err = db.Ping()
-	}
-	if err == nil {
-		fmt.Println("Database connection successful")
-		break
-	}
-	fmt.Printf("MySQL接続失敗 (%d/%d): %v\n", i+1, maxRetries, err)
+		db, err = sql.Open("mysql", dsn)
+		if err == nil {
+			err = db.Ping()
+		}
+		if err == nil {
+			fmt.Println("Database connection successful")
+			break
+		}
+		fmt.Printf("MySQL接続失敗 (%d/%d): %v\n", i+1, maxRetries, err)
 		time.Sleep(3 * time.Second)
 	}
 

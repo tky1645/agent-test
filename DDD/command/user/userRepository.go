@@ -20,13 +20,6 @@ type UserRepository struct {
 }
 
 func NewUserRepository(db *sql.DB) *UserRepository {
-	//db, err := sql.Open("mysql", "sampleuser:samplepass@tcp(ddd_rdb:3306)/sampledb")
-	db, err := sql.Open("mysql", "root:rootpassword@tcp(ddd_rdb:3306)/sampledb")
-	if err != nil {
-		fmt.Println("db err", err)
-		panic(err)
-		return &UserRepository{}
-	}
 	fmt.Println("db connect success")
 	return &UserRepository{db: db}
 }
