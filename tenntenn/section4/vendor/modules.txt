@@ -1,3 +1,0 @@
-# github.com/tenntenn/greeting v1.0.0
-## explicit
-github.com/tenntenn/greeting

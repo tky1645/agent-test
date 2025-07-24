@@ -1,4 +1,0 @@
-- 参考
-  - https://qiita.com/yamoridon/items/d999e28bd576249b1d6e
-- クッキーへのデータの保存
-  - 
