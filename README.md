@@ -1,26 +1,26 @@
-# DDD Project
+# DDDプロジェクト
 
-This project is a basic implementation of Domain-Driven Design (DDD) principles in Go.
+このプロジェクトは、GoでDomain-Driven Design（DDD）の原則を基本的に実装したものです。
 
-## Project Structure
+## プロジェクト構造
 
-- `command/user`: Contains the user command handlers and service.
-- `entities`: Defines the core entities (e.g., User, Plant).
-- `query/plant`: Contains the plant query handlers and repository.
-- `rdb`: Contains the database related files.
-- `migrations`: Database migration files.
+- `command/user`: ユーザーのコマンドハンドラーとサービスを含む
+- `entities`: コアエンティティ（例：User、Plant）を定義
+- `query/plant`: 植物のクエリハンドラーとリポジトリを含む
+- `rdb`: データベース関連ファイルを含む
+- `migrations`: データベースマイグレーションファイル
 
-## Dependencies
+## 依存関係
 
-- `github.com/gin-gonic/gin`: Web framework.
-- `github.com/go-sql-driver/mysql`: MySQL driver.
+- `github.com/gin-gonic/gin`: Webフレームワーク
+- `github.com/go-sql-driver/mysql`: MySQLドライバー
 
-## How to Run
+## 実行方法
 
-1.  Install dependencies: `go mod tidy`
-2.  Run the application: `go run main.go`
+1.  依存関係をインストール: `go mod tidy`
+2.  アプリケーションを実行: `go run main.go`
 
-## クラス図 (Class Diagram)
+## クラス図
 
 ```mermaid
 classDiagram
@@ -117,7 +117,7 @@ classDiagram
     PlantRepository --> Plant
 ```
 
-## ユースケース一覧 (Use Cases)
+## ユースケース一覧
 
 ### ユーザー管理
 - **UC-U1**: ユーザー登録 - 新しいユーザーを作成する
@@ -139,152 +139,152 @@ classDiagram
 - **UC-W3**: 水やり状態確認 - 前回の水やりからの経過日数を確認する
 - **UC-W4**: 水やり記録削除 - 水やり記録を削除する
 
-## Sequence Diagrams
+## シーケンス図
 
-### GET /users/{id}
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Handler
-    participant UserService
-    participant UserRepository
-    participant Database
-
-    Client->>Handler: GET /users/{id}
-    Handler->>UserService: GetByID(id)
-    UserService->>UserRepository: GetByID(id)
-    UserRepository->>Database: SELECT * FROM users WHERE id = {id}
-    Database-->>UserRepository: User data
-    UserRepository-->>UserService: User data
-    UserService-->>Handler: User data
-    Handler-->>Client: User data
-```
-
-### POST /users
+### GET /users/{id} (ユーザー取得)
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Handler
-    participant UserService
-    participant UserRepository
-    participant Database
+    participant クライアント as Client
+    participant ハンドラー as Handler
+    participant ユーザーサービス as UserService
+    participant ユーザーリポジトリ as UserRepository
+    participant データベース as Database
 
-    Client->>Handler: POST /users
-    Handler->>UserService: Create(id, name)
-    UserService->>UserRepository: Save(user)
-    UserRepository->>Database: INSERT INTO users (id, name) VALUES (?, ?)
-    Database-->>UserRepository: OK
-    UserRepository-->>UserService: OK
-    UserService-->>Handler: OK
-    Handler-->>Client: OK
+    クライアント->>ハンドラー: GET /users/{id}
+    ハンドラー->>ユーザーサービス: GetByID(id)
+    ユーザーサービス->>ユーザーリポジトリ: GetByID(id)
+    ユーザーリポジトリ->>データベース: SELECT * FROM users WHERE id = {id}
+    データベース-->>ユーザーリポジトリ: ユーザーデータ
+    ユーザーリポジトリ-->>ユーザーサービス: ユーザーデータ
+    ユーザーサービス-->>ハンドラー: ユーザーデータ
+    ハンドラー-->>クライアント: ユーザーデータ
 ```
 
-### PUT /users/{id}
+### POST /users (ユーザー作成)
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Handler
-    participant UserService
-    participant UserRepository
-    participant Database
+    participant クライアント as Client
+    participant ハンドラー as Handler
+    participant ユーザーサービス as UserService
+    participant ユーザーリポジトリ as UserRepository
+    participant データベース as Database
 
-    Client->>Handler: PUT /users/{id}
-    Handler->>UserService: Update(id, name)
-    UserService->>UserRepository: GetByID(id)
-    UserRepository->>Database: SELECT * FROM users WHERE id = {id}
-    Database-->>UserRepository: User data
-    UserRepository-->>UserService: User data
-    UserService->>UserRepository: Save(user)
-    UserRepository->>Database: UPDATE users SET name = ? WHERE id = ?
-    Database-->>UserRepository: OK
-    UserRepository-->>UserService: OK
-    UserService-->>Handler: OK
-    Handler-->>Client: OK
+    クライアント->>ハンドラー: POST /users
+    ハンドラー->>ユーザーサービス: Create(id, name)
+    ユーザーサービス->>ユーザーリポジトリ: Save(user)
+    ユーザーリポジトリ->>データベース: INSERT INTO users (id, name) VALUES (?, ?)
+    データベース-->>ユーザーリポジトリ: OK
+    ユーザーリポジトリ-->>ユーザーサービス: OK
+    ユーザーサービス-->>ハンドラー: OK
+    ハンドラー-->>クライアント: OK
 ```
 
-### DELETE /users/{id}
+### PUT /users/{id} (ユーザー更新)
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Handler
-    participant UserService
-    participant UserRepository
-    participant Database
+    participant クライアント as Client
+    participant ハンドラー as Handler
+    participant ユーザーサービス as UserService
+    participant ユーザーリポジトリ as UserRepository
+    participant データベース as Database
 
-    Client->>Handler: DELETE /users/{id}
-    Handler->>UserService: Delete(id)
-    UserService->>UserRepository: Delete(id)
-    UserRepository->>Database: DELETE FROM users WHERE id = {id}
-    Database-->>UserRepository: OK
-    UserRepository-->>UserService: OK
-    UserService-->>Handler: OK
-    Handler-->>Client: OK
+    クライアント->>ハンドラー: PUT /users/{id}
+    ハンドラー->>ユーザーサービス: Update(id, name)
+    ユーザーサービス->>ユーザーリポジトリ: GetByID(id)
+    ユーザーリポジトリ->>データベース: SELECT * FROM users WHERE id = {id}
+    データベース-->>ユーザーリポジトリ: ユーザーデータ
+    ユーザーリポジトリ-->>ユーザーサービス: ユーザーデータ
+    ユーザーサービス->>ユーザーリポジトリ: Save(user)
+    ユーザーリポジトリ->>データベース: UPDATE users SET name = ? WHERE id = ?
+    データベース-->>ユーザーリポジトリ: OK
+    ユーザーリポジトリ-->>ユーザーサービス: OK
+    ユーザーサービス-->>ハンドラー: OK
+    ハンドラー-->>クライアント: OK
 ```
 
-## 植物管理のシーケンス図 (Plant Management Sequence Diagrams)
+### DELETE /users/{id} (ユーザー削除)
+
+```mermaid
+sequenceDiagram
+    participant クライアント as Client
+    participant ハンドラー as Handler
+    participant ユーザーサービス as UserService
+    participant ユーザーリポジトリ as UserRepository
+    participant データベース as Database
+
+    クライアント->>ハンドラー: DELETE /users/{id}
+    ハンドラー->>ユーザーサービス: Delete(id)
+    ユーザーサービス->>ユーザーリポジトリ: Delete(id)
+    ユーザーリポジトリ->>データベース: DELETE FROM users WHERE id = {id}
+    データベース-->>ユーザーリポジトリ: OK
+    ユーザーリポジトリ-->>ユーザーサービス: OK
+    ユーザーサービス-->>ハンドラー: OK
+    ハンドラー-->>クライアント: OK
+```
+
+## 植物管理のシーケンス図
 
 ### POST /plants (植物登録)
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant PlantHandler
-    participant PlantRepository
-    participant Database
+    participant クライアント as Client
+    participant 植物ハンドラー as PlantHandler
+    participant 植物リポジトリ as PlantRepository
+    participant データベース as Database
 
-    Client->>PlantHandler: POST /plants
-    PlantHandler->>PlantHandler: fetchPost(c)
-    PlantHandler->>PlantHandler: validatePost(param)
-    PlantHandler->>PlantHandler: entities.NewPlant(name)
-    PlantHandler->>PlantRepository: create(plant)
-    PlantRepository->>Database: INSERT INTO plant (name, watering_date, created_at, updated_at)
-    Database-->>PlantRepository: OK
-    PlantRepository-->>PlantHandler: OK
-    PlantHandler-->>Client: Plant data
+    クライアント->>植物ハンドラー: POST /plants
+    植物ハンドラー->>植物ハンドラー: fetchPost(c)
+    植物ハンドラー->>植物ハンドラー: validatePost(param)
+    植物ハンドラー->>植物ハンドラー: entities.NewPlant(name)
+    植物ハンドラー->>植物リポジトリ: create(plant)
+    植物リポジトリ->>データベース: INSERT INTO plant (name, watering_date, created_at, updated_at)
+    データベース-->>植物リポジトリ: OK
+    植物リポジトリ-->>植物ハンドラー: OK
+    植物ハンドラー-->>クライアント: 植物データ
 ```
 
 ### PATCH /plants/{id} (水やり記録)
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant PlantHandler
-    participant PlantRepository
-    participant Database
+    participant クライアント as Client
+    participant 植物ハンドラー as PlantHandler
+    participant 植物リポジトリ as PlantRepository
+    participant データベース as Database
 
-    Client->>PlantHandler: PATCH /plants/{id}
-    PlantHandler->>PlantHandler: fetchPatch(c)
-    PlantHandler->>PlantHandler: validatePatch(param)
-    PlantHandler->>PlantRepository: findByID(id)
-    PlantRepository->>Database: SELECT * FROM plant WHERE id = {id}
-    Database-->>PlantRepository: Plant data
-    PlantRepository-->>PlantHandler: Plant data
-    PlantHandler->>PlantHandler: plant.UpdateWatering()
-    PlantHandler->>PlantRepository: save(plant)
-    PlantRepository->>Database: UPDATE plant SET watering_date = ? WHERE id = ?
-    Database-->>PlantRepository: OK
-    PlantRepository-->>PlantHandler: OK
-    PlantHandler-->>Client: Updated plant data
+    クライアント->>植物ハンドラー: PATCH /plants/{id}
+    植物ハンドラー->>植物ハンドラー: fetchPatch(c)
+    植物ハンドラー->>植物ハンドラー: validatePatch(param)
+    植物ハンドラー->>植物リポジトリ: findByID(id)
+    植物リポジトリ->>データベース: SELECT * FROM plant WHERE id = {id}
+    データベース-->>植物リポジトリ: 植物データ
+    植物リポジトリ-->>植物ハンドラー: 植物データ
+    植物ハンドラー->>植物ハンドラー: plant.UpdateWatering()
+    植物ハンドラー->>植物リポジトリ: save(plant)
+    植物リポジトリ->>データベース: UPDATE plant SET watering_date = ? WHERE id = ?
+    データベース-->>植物リポジトリ: OK
+    植物リポジトリ-->>植物ハンドラー: OK
+    植物ハンドラー-->>クライアント: 更新された植物データ
 ```
 
 ### GET /plants (植物一覧取得)
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant PlantHandler
-    participant PlantRepository
-    participant Database
+    participant クライアント as Client
+    participant 植物ハンドラー as PlantHandler
+    participant 植物リポジトリ as PlantRepository
+    participant データベース as Database
 
-    Client->>PlantHandler: GET /plants
-    PlantHandler->>PlantHandler: ShouldBindJSON(req)
-    PlantHandler->>PlantRepository: FindAll(limit, offset)
-    PlantRepository->>Database: SELECT * FROM plant LIMIT ? OFFSET ?
-    Database-->>PlantRepository: Plants data
-    PlantRepository-->>PlantHandler: Plants data
-    PlantHandler-->>Client: Plants list
+    クライアント->>植物ハンドラー: GET /plants
+    植物ハンドラー->>植物ハンドラー: ShouldBindJSON(req)
+    植物ハンドラー->>植物リポジトリ: FindAll(limit, offset)
+    植物リポジトリ->>データベース: SELECT * FROM plant LIMIT ? OFFSET ?
+    データベース-->>植物リポジトリ: 植物データ
+    植物リポジトリ-->>植物ハンドラー: 植物データ
+    植物ハンドラー-->>クライアント: 植物一覧
 ```
