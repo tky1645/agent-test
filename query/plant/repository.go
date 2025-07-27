@@ -110,3 +110,31 @@ func (r *Repository) FindAll(limit int, offset int) ([]entities.Plant, error) {
 
 	return plants, nil
 }
+
+func (r *Repository) FindWateringRecordsByPlantID(plantID string) ([]entities.WateringRecord, error) {
+	query := "SELECT id, plant_id, watered_at, notes, created_at FROM watering_records WHERE plant_id = ? ORDER BY watered_at DESC"
+	rows, err := r.db.Query(query, plantID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query watering records: %v", err)
+	}
+	defer rows.Close()
+
+	var records []entities.WateringRecord
+	for rows.Next() {
+		var record entities.WateringRecord
+		var notes sql.NullString
+		
+		err := rows.Scan(&record.ID, &record.PlantID, &record.WateredAt, &notes, &record.CreatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan watering record: %v", err)
+		}
+		
+		if notes.Valid {
+			record.Notes = &notes.String
+		}
+		
+		records = append(records, record)
+	}
+	
+	return records, nil
+}
