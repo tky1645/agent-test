@@ -19,6 +19,7 @@ type IPlantRepository interface {
 	save(entities.Plant) error
 	findByID(int) (entities.Plant, error)
 	FindAll(limit int, offset int) ([]entities.Plant, error)
+	FindWateringRecordsByPlantID(plantID string) ([]entities.WateringRecord, error)
 }
 
 type PlantRepository interface {
@@ -140,4 +141,21 @@ func HandlerGETPlants(c *gin.Context) {
 	}
 
 	c.JSON(200, plants)
+}
+
+func HandlerGETWateringHistory(c *gin.Context) {
+	plantID := c.Param("plantId")
+	if plantID == "" {
+		c.JSON(400, gin.H{"error": "plant_id is required"})
+		return
+	}
+
+	repo := newRepo()
+	records, err := repo.FindWateringRecordsByPlantID(plantID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, records)
 }
