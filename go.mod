@@ -2,7 +2,10 @@ module DDD
 
 go 1.23.6
 
-require github.com/gin-gonic/gin v1.10.0
+require (
+	github.com/gin-gonic/gin v1.10.0
+	github.com/stretchr/testify v1.8.4
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
