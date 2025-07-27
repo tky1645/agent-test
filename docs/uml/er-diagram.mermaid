@@ -1,0 +1,30 @@
+erDiagram
+    users ||--o{ plants : "owns"
+    plants ||--o{ watering_records : "has"
+    
+    users {
+        uuid id PK
+        string cognito_id UK
+        string email UK
+        string name
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    plants {
+        uuid id PK
+        uuid user_id FK
+        string name
+        text description
+        string image_url
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    watering_records {
+        uuid id PK
+        uuid plant_id FK
+        timestamp watered_at
+        text notes
+        timestamp created_at
+    }
