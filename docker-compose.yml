@@ -1,0 +1,37 @@
+services:
+  ddd_app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "18080:8080" # 必要に応じてポートを調整してください
+    depends_on:
+      ddd_rdb:
+        condition: service_healthy
+    environment:
+      DB_USER: sampleuser
+      DB_PASSWORD: samplepass
+      DB_HOST: ddd_rdb
+      DB_PORT: 3306
+      DB_NAME: sampledb
+
+  ddd_rdb:
+    build:
+      context: ./rdb
+      dockerfile: Dockerfile
+    ports:
+      - "13306:3306" # 必要に応じてポートを調整してください
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydb
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  db_data:

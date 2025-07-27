@@ -1,0 +1,1093 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+
+Additional Info:
+----------------
+
+================================================================
+Directory Structure
+================================================================
+command/
+  user/
+    handler.go
+    userRepository.go
+    userService.go
+entities/
+  plant.go
+  user.go
+migrations/
+  20250224014832_create_users_table.down.sql
+  20250224014832_create_users_table.up.sql
+  20250307142015_create_users_table.down.sql
+  20250307142015_create_users_table.up.sql
+  README.md
+query/
+  plant/
+    plant.go
+    repository.go
+rdb/
+  Dockerfile
+.air.toml
+.gitignore
+docker-compose.yml
+Dockerfile
+go.mod
+main.go
+README.md
+
+================================================================
+Files
+================================================================
+
+================
+File: command/user/handler.go
+================
+package user
+
+// application service
+import (
+	"database/sql"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
+
+
+var (
+	userRepository *UserRepository
+	userService    *UserService
+)
+
+func InitHandlers(db *sql.DB) {
+	userRepository = NewUserRepository(db)
+	userService = NewUserService(*userRepository)
+}
+
+func HandlerGET(c *gin.Context) {
+	user, err := userRepository.Create(1)
+	if err != nil {
+		c.JSON(500, err)
+		return
+	}
+	c.JSON(200, user)
+}
+
+func HandlerPOST(c *gin.Context) {
+	err := userService.Create(1, "postJohn")
+	if err != nil {
+		c.JSON(500, err)
+		return
+	}
+	c.JSON(200, err)
+}
+
+func HandlerPUT(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "id is empty"})
+		return
+	}
+
+	var name string
+	if err := c.ShouldBindJSON(&name); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	if name == "" {
+		c.JSON(400, gin.H{"error": "name is empty"})
+		return
+	}
+
+	err := userService.Update(id, name)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "User updated successfully",
+		"id":      id,
+	})
+}
+
+func HandlerFETCH(c *gin.Context) {
+	id := c.Param("id")
+	user, err := userService.GetByID(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, user)
+}
+
+func HandlerDELETE(c *gin.Context) {
+	id := c.Param("id")
+	err := userService.Delete(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "User deleted successfully",
+		"id":      id,
+	})
+}
+
+func HandlerDelete(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "id is empty"})
+		return
+	}
+	idUint, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = userRepository.Delete(uint(idUint))
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "User deleted successfully",
+		"id":      id,
+	})
+}
+
+================
+File: command/user/userRepository.go
+================
+package user
+
+import (
+	"DDD/entities"
+	"database/sql"
+	"fmt"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+
+var _ IUserRepository = (*UserRepository)(nil)
+
+type userTable struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type UserRepository struct {
+	db *sql.DB
+}
+
+func NewUserRepository(db *sql.DB) *UserRepository {
+	//db, err := sql.Open("mysql", "sampleuser:samplepass@tcp(ddd_rdb:3306)/sampledb")
+	db, err := sql.Open("mysql", "root:rootpassword@tcp(ddd_rdb:3306)/sampledb")
+	if err != nil {
+		fmt.Println("db err", err)
+		panic(err)
+		return &UserRepository{}
+	}
+	fmt.Println("db connect success")
+	return &UserRepository{db: db}
+}
+
+func (r *UserRepository) Save(user entities.User) error {
+	return nil
+}
+
+// Create の戻り値に error を追加してエラーを呼び出し元へ伝播する
+func (r *UserRepository) Create(id int) (entities.User, error) {
+	userData := r.fetchUserData(id)
+	user, err := entities.NewUser(userData.ID, userData.Name)
+	if err != nil {
+		return entities.User{}, err
+	}
+	return user, nil
+}
+
+// get メソッドを fetchUserData に名称変更
+func (r *UserRepository) fetchUserData(id int) userTable {
+    // 仮のデータ取得処理
+	return userTable{
+		ID:   id,
+		Name: "getJohn",
+	}
+}
+
+func (r *UserRepository) GetByID(id string) (entities.User, error) {
+	query := "SELECT id, name, email, password FROM users WHERE id = ?"
+	row := r.db.QueryRow(query, id)
+
+	var userId int
+	var userName string
+	var userEmail string
+	var userPassword string
+	err := row.Scan(&userId, &userName, &userEmail, &userPassword)
+	if err != nil {
+		fmt.Println("getByID query error", err)
+		return entities.User{}, err
+	}
+
+	user, err := entities.NewUser(userId, userName)
+	if err != nil {
+		return entities.User{}, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) Update(id string, name string) error {
+	query := "UPDATE users SET name = ? WHERE id = ?"
+	_, err := r.db.Exec(query, name, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *UserRepository) Delete(id uint) error {
+	query := "DELETE FROM users WHERE id = ?"
+	_, err := r.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+================
+File: command/user/userService.go
+================
+package user
+
+import (
+	"DDD/entities"
+	"strconv"
+)
+
+// domain service
+type UserService struct {
+	userRepository IUserRepository
+}
+
+func NewUserService(r UserRepository) *UserService {
+	return &UserService{
+		userRepository: &r,
+	}
+}
+
+func (s *UserService) Create(id int, name string) error {
+	user, err := entities.NewUser(id, name)
+	if err != nil {
+		return err
+	}
+	if err := s.userRepository.Save(user); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UserService) Update(id string, name string) error {
+	user, err := s.userRepository.GetByID(id)
+	if err != nil {
+		return err
+	}
+	userName, err := entities.NewUserName(name)
+	if err != nil {
+		return err
+	}
+	user.Name = userName
+	if err := s.userRepository.Save(user); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) Delete(id string) error {
+	idUint, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return err
+	}
+	return s.userRepository.Delete(uint(idUint))
+}
+
+func (s *UserService) GetByID(id string) (entities.User, error) {
+	return s.userRepository.GetByID(id)
+}
+
+type IUserRepository interface {
+	Create(id int) (entities.User, error)
+	Save(user entities.User) error
+	Update(id string, name string) error
+	GetByID(id string) (entities.User, error)
+	Delete(id uint) error
+}
+
+================
+File: entities/plant.go
+================
+package entities
+
+import (
+	"errors"
+	"time"
+)
+
+type Plant struct {
+	ID   int    `json:"id"`
+	Name PlantName `json:"name"`
+	WateringDate *time.Time `json:"watering_date"`
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
+}
+
+type PlantName string
+
+func NewPlantName(name string)(PlantName, error){
+	if name == ""{
+		return "", errors.New("name is empty")
+	}
+	return PlantName(name), nil
+}
+func NewPlant(name string, args ...func(*Plant))*Plant{
+	PlantName, err  := NewPlantName(name)
+
+	if err != nil {
+		return &Plant{}
+	}
+
+	p :=  Plant{
+		ID:  0,
+		Name: PlantName,
+		WateringDate: nil,
+	}
+
+	for _,arg := range args{
+		arg(&p)
+	}
+
+	return &p
+}
+
+func withWateringDate(d *time.Time) func(*Plant){
+	return func(p *Plant){
+		p.WateringDate = d
+	}
+}
+
+func (p *Plant) UpdateWatering() {
+	d := time.Now()
+	p.WateringDate = &d
+}
+
+================
+File: entities/user.go
+================
+package entities
+
+import "fmt"
+
+type User struct {
+	ID   int    `json:"id"`
+	Name userName `json:"name"`
+}
+
+
+type userName string
+func NewUserName(name string) (userName, error) {
+	if name == "" {
+		return "",fmt.Errorf("name is empty")
+	}
+
+	return userName(name),nil
+}
+
+// factory method
+func NewUser(id int, name string)( User, error) {
+	userName, err := NewUserName(name)
+	if err != nil {
+		return User{}, err
+	}
+
+	return User{
+		ID:   id,
+		Name: userName,
+	},nil
+}
+
+================
+File: migrations/20250224014832_create_users_table.down.sql
+================
+DROP TABLE IF EXISTS plant;
+
+================
+File: migrations/20250224014832_create_users_table.up.sql
+================
+CREATE TABLE plant (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    wateringDate DATE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+================
+File: migrations/20250307142015_create_users_table.down.sql
+================
+DROP TABLE IF EXISTS plant;
+
+================
+File: migrations/20250307142015_create_users_table.up.sql
+================
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+================
+File: migrations/README.md
+================
+# go-migration
+- インストール
+  - `go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
+- マイグレーションファイルの生成
+  - `migrate create -ext sql -dir migrations create_users_table`
+- マイグレーションファイルの編集
+  - up,down両方
+- マイグレーションの実行方法
+  - `migrate -database "mysql://user:password@tcp(host:port)/dbname" -path migrations up`
+- 特定のバージョンまでmigrateする場合
+  - `migrate -database "mysql://user:password@tcp(host:port)/dbname" -path migrations goto バージョン`
+- バージョンを指定してdownする場合
+  - `migrate -database "mysql://user:password@tcp(host:port)/dbname" -path migrations down バージョン`
+
+================
+File: query/plant/plant.go
+================
+package plant
+
+import (
+	"DDD/entities"
+	"errors"
+	"fmt"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
+
+// application service
+type applicationService struct {
+	repository IPlantRepository
+}
+
+type IPlantRepository interface {
+	create(entities.Plant) error
+	save(entities.Plant) error
+	findByID(int) (entities.Plant, error)
+	FindAll(limit int, offset int) ([]entities.Plant, error)
+}
+
+type PlantRepository interface {
+}
+
+type payloadPost struct {
+	Name string `json:"name"`
+}
+type paramPatch struct {
+	id int
+}
+
+
+func HandlerPOST(c *gin.Context) {
+	// リポジトリの作成
+	r := newRepo()
+
+	param, err := fetchPost(c)
+	if err !=nil{
+		c.JSON(400, err)
+		return
+	}
+	// バリデーション
+	if err := validatePost(param); err != nil {
+		c.JSON(400, err)
+		return
+	}
+	// ルートエンティティの作成
+	plant := entities.NewPlant(param.Name)
+	// リポジトリ経由で保存
+	if err := r.create(*plant); err != nil {
+		c.JSON(500, err)
+		return
+	}
+	
+	fmt.Println(plant.Name)
+	c.JSON(200, plant)
+}
+
+func HandlerPATCH(c *gin.Context) {
+	r := newRepo()
+
+	param, err := fetchPatch(c)
+	if err !=nil{
+		c.JSON(400, err)
+		return
+	}
+	if err := validatePatch(param); err != nil {
+		c.JSON(400, err)
+		return
+	}
+	// ルートエンティティの再構築
+	plant, err := r.findByID(param.id)
+	if err != nil {
+		c.JSON(404, err)
+		return 
+	}
+	// 変更
+	plant.UpdateWatering()
+
+	// リポジトリ経由で保存
+	if err := r.save(plant); err != nil {
+		c.JSON(500, err)
+		return
+	}
+	
+	fmt.Println(plant.WateringDate)
+	c.JSON(200, plant)
+}
+
+func fetchPost (c *gin.Context)(payloadPost,error){
+	p := payloadPost{}
+	if err :=c.ShouldBindJSON(&p); err !=nil{
+		return p, err
+	}
+	return p, nil
+}
+
+func fetchPatch (c *gin.Context)(paramPatch,error){
+	p :=c.Param("id");
+	if  p ==""{
+		return paramPatch{}, errors.New("id is empty")
+	}
+
+	id, err:= strconv.Atoi(p)
+	if err != nil {
+		return	paramPatch{}, err
+	}
+
+	return paramPatch{
+		id: id,
+	}, nil
+}
+
+func validatePost(p payloadPost) error {
+	return nil
+}
+func validatePatch(p paramPatch) error {
+	return nil
+}
+
+type PlantListRequest struct {
+	Limit  int `json:"limit" binding:"required"`
+	Offset int `json:"offset" binding:"required"`
+}
+
+func HandlerGETPlants(c *gin.Context) {
+	var req PlantListRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	repo := newRepo()
+	plants, err := repo.FindAll(req.Limit, req.Offset)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, plants)
+}
+
+================
+File: query/plant/repository.go
+================
+package plant
+
+import (
+	"DDD/entities"
+	"database/sql"
+	"fmt"
+	"time"
+)
+
+type Repository struct {
+	db *sql.DB
+}
+
+func newRepo() *Repository {
+	db, err := sql.Open("mysql", "sampleuser:samplepass@tcp(ddd_rdb:3306)/sampledb")
+	if err != nil {
+		fmt.Println("db err", err)
+		panic(err)
+	}
+	return &Repository{
+		db: db,
+	}
+}
+
+func (r *Repository) create(plant entities.Plant) error {
+	return nil
+}
+
+func (r *Repository) save(plant entities.Plant) error {
+	return nil
+}
+
+func (r *Repository) findByID(id int) (entities.Plant, error) {
+	// DBからの取得
+	return *entities.NewPlant("test"), nil
+}
+
+func (r *Repository) FindAll(limit int, offset int) ([]entities.Plant, error) {
+	query := "SELECT id, name, wateringDate, created_at, updated_at FROM plant LIMIT ? OFFSET ?"
+	rows, err := r.db.Query(query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var plants []entities.Plant
+	for rows.Next() {
+		var id int
+		var name string
+		var wateringDate sql.NullString
+		var createdAt time.Time
+		var updatedAt time.Time
+		err := rows.Scan(&id, &name, &wateringDate, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		plantName, err := entities.NewPlantName(name)
+		if err != nil {
+			fmt.Println("Error creating plant name:", err)
+			continue // Skip this plant if there's an error
+		}
+
+		var wateringTime *time.Time
+		if wateringDate.Valid {
+			// Parse the wateringDate string to time.Time
+			t, err := time.Parse("2006-01-02", wateringDate.String) // Adjust the format as needed
+			if err != nil {
+				fmt.Println("Error parsing watering date:", err)
+				continue // Skip this plant if there's an error
+			}
+			wateringTime = &t
+		}
+
+		plant := entities.Plant{
+			ID:   id,
+			Name: plantName,
+			WateringDate: wateringTime,
+			CreatedAt: &createdAt,
+			UpdatedAt: &updatedAt,
+		}
+		plants = append(plants, plant)
+	}
+
+	return plants, nil
+}
+
+================
+File: rdb/Dockerfile
+================
+FROM mysql:8.0
+
+
+# 環境変数の設定
+ENV MYSQL_ROOT_PASSWORD=rootpassword
+ENV MYSQL_DATABASE=sampledb
+ENV MYSQL_USER=sampleuser
+ENV MYSQL_PASSWORD=samplepass
+
+# ポートの公開
+EXPOSE 3306
+
+================
+File: .air.toml
+================
+root = "."
+tmp_dir = "tmp"
+[build]
+  cmd = "go build -o ./tmp/main ."
+  bin = "tmp/main"
+  full_bin = "APP_ENV=dev APP_USER=air ./tmp/main"
+  delay = 1000
+  exclude_dir = ["tmp", "vendor", "node_modules"]
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  exclude_ext = ["swp", "log"]
+  exclude_regex = ["_test\\.go"]
+
+================
+File: .gitignore
+================
+# Binaries and build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+build/
+
+# Go specific
+vendor/
+go.sum
+
+# IDE - VS Code
+.vscode/
+*.code-workspace
+
+# IDE - GoLand
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Log files
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*
+
+# OS specific files
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.Trash-*
+
+# Test coverage
+coverage.txt
+coverage.html
+
+# air binary
+tmp/
+
+================
+File: docker-compose.yml
+================
+version: "3.8"
+services:
+  ddd_app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # 必要に応じてポートを調整してください
+    depends_on:
+      - ddd_rdb
+
+  ddd_rdb:
+    build:
+      context: ./rdb
+      dockerfile: Dockerfile
+    ports:
+      - "3306:3306" # 必要に応じてポートを調整してください
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydb
+
+volumes:
+  db_data:
+
+================
+File: Dockerfile
+================
+# Build stage
+FROM golang:1.24 AS builder
+WORKDIR /build
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o app .
+
+# Final stage
+FROM alpine:latest
+# RUN apk --no-cache add ca-certificates
+WORKDIR /app
+COPY --from=builder /build/app .
+EXPOSE 8080
+CMD [ "./app" ]
+
+================
+File: go.mod
+================
+module DDD
+
+go 1.23.6
+
+require github.com/gin-gonic/gin v1.10.0
+
+require (
+	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/bytedance/sonic v1.11.6 // indirect
+	github.com/bytedance/sonic/loader v0.1.1 // indirect
+	github.com/cloudwego/base64x v0.1.4 // indirect
+	github.com/cloudwego/iasm v0.2.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.20.0 // indirect
+	github.com/go-sql-driver/mysql v1.9.0 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
+	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
+	github.com/ugorji/go/codec v1.2.12 // indirect
+	golang.org/x/arch v0.8.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+================
+File: main.go
+================
+package main
+
+import (
+	"DDD/command/user"
+	"DDD/query/plant"
+	"database/sql"
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
+)
+
+func main() {
+	r := gin.Default()
+
+	// Database connection
+	cfg := mysql.Config{
+		User:   "sampleuser", // Use environment variables
+		Passwd: "samplepass", // Use environment variables
+		Net:    "tcp",
+		Addr:   "ddd_rdb:3306", // Use environment variables
+		DBName: "sampledb",    // Use environment variables
+	}
+	dsn := cfg.FormatDSN() // Automatically generate the correct DSN
+
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Database connection successful")
+
+	// Initialize user handlers
+	user.InitHandlers(db)
+
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, "ping pong")
+	})
+	r.GET("/users", user.HandlerGET)
+	r.POST("/users", user.HandlerPOST)
+	r.PUT("/users/:id", user.HandlerPUT)
+	r.GET("/users/:id", user.HandlerFETCH)
+	r.DELETE("/users/:id", user.HandlerDELETE)
+
+	r.POST("/plants", plant.HandlerPOST)
+	r.GET("/plants", plant.HandlerGETPlants)
+	r.PATCH("/plants/:id", plant.HandlerPATCH)
+
+	r.Run(":8080")
+}
+
+================
+File: README.md
+================
+# DDD Project
+
+This project is a basic implementation of Domain-Driven Design (DDD) principles in Go.
+
+## Project Structure
+
+- `command/user`: Contains the user command handlers and service.
+- `entities`: Defines the core entities (e.g., User).
+- `rdb`: Contains the database related files.
+
+## Dependencies
+
+- `github.com/gin-gonic/gin`: Web framework.
+- `github.com/go-sql-driver/mysql`: MySQL driver.
+
+## How to Run
+
+1.  Install dependencies: `go mod tidy`
+2.  Run the application: `go run main.go`
+
+## Sequence Diagrams
+
+### GET /users/{id}
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Handler
+    participant UserService
+    participant UserRepository
+    participant Database
+
+    Client->>Handler: GET /users/{id}
+    Handler->>UserService: GetByID(id)
+    UserService->>UserRepository: GetByID(id)
+    UserRepository->>Database: SELECT * FROM users WHERE id = {id}
+    Database-->>UserRepository: User data
+    UserRepository-->>UserService: User data
+    UserService-->>Handler: User data
+    Handler-->>Client: User data
+```
+
+### POST /users
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Handler
+    participant UserService
+    participant UserRepository
+    participant Database
+
+    Client->>Handler: POST /users
+    Handler->>UserService: Create(id, name)
+    UserService->>UserRepository: Save(user)
+    UserRepository->>Database: INSERT INTO users (id, name) VALUES (?, ?)
+    Database-->>UserRepository: OK
+    UserRepository-->>UserService: OK
+    UserService-->>Handler: OK
+    Handler-->>Client: OK
+```
+
+### PUT /users/{id}
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Handler
+    participant UserService
+    participant UserRepository
+    participant Database
+
+    Client->>Handler: PUT /users/{id}
+    Handler->>UserService: Update(id, name)
+    UserService->>UserRepository: GetByID(id)
+    UserRepository->>Database: SELECT * FROM users WHERE id = {id}
+    Database-->>UserRepository: User data
+    UserRepository-->>UserService: User data
+    UserService->>UserRepository: Save(user)
+    UserRepository->>Database: UPDATE users SET name = ? WHERE id = ?
+    Database-->>UserRepository: OK
+    UserRepository-->>UserService: OK
+    UserService-->>Handler: OK
+    Handler-->>Client: OK
+```
+
+### DELETE /users/{id}
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Handler
+    participant UserService
+    participant UserRepository
+    participant Database
+
+    Client->>Handler: DELETE /users/{id}
+    Handler->>UserService: Delete(id)
+    UserService->>UserRepository: Delete(id)
+    UserRepository->>Database: DELETE FROM users WHERE id = {id}
+    Database-->>UserRepository: OK
+    UserRepository-->>UserService: OK
+    UserService-->>Handler: OK
+    Handler-->>Client: OK
+```
+
+
+
+================================================================
+End of Codebase
+================================================================

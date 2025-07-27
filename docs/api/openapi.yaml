@@ -1,0 +1,442 @@
+openapi: "3.0.0"
+info:
+  title: "植物水やり管理API"
+  description: "植物の水やりを管理するためのRESTful API"
+  version: "1.0.0"
+
+servers:
+  - url: "/api/v1"
+    description: "API バージョン1"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        cognito_id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Plant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PlantCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+
+    PlantUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+
+    WateringRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        plant_id:
+          type: string
+          format: uuid
+        watered_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    WateringRecordCreate:
+      type: object
+      required:
+        - watered_at
+      properties:
+        watered_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          nullable: true
+
+    PlantStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        last_watered_at:
+          type: string
+          format: date-time
+          nullable: true
+        days_since_last_watering:
+          type: number
+          format: float
+          nullable: true
+        previous_watering_interval:
+          type: number
+          format: float
+          nullable: true
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/me:
+    get:
+      summary: "認証済みユーザーの情報を取得"
+      tags:
+        - auth
+      responses:
+        200:
+          description: "正常に取得"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /plants:
+    get:
+      summary: "認証ユーザーの所有する植物の一覧を取得"
+      tags:
+        - plants
+      responses:
+        200:
+          description: "植物リストを返却"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plant"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: "新しい植物を登録"
+      tags:
+        - plants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlantCreate"
+      responses:
+        201:
+          description: "植物が正常に作成された"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plant"
+        400:
+          description: "無効なリクエスト"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /plants/{plantId}:
+    parameters:
+      - name: plantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: "特定の植物の詳細情報を取得"
+      tags:
+        - plants
+      responses:
+        200:
+          description: "植物の詳細情報"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plant"
+        404:
+          description: "植物が見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: "植物の情報を更新"
+      tags:
+        - plants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlantUpdate"
+      responses:
+        200:
+          description: "植物が正常に更新された"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plant"
+        400:
+          description: "無効なリクエスト"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: "植物が見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: "植物を削除"
+      tags:
+        - plants
+      responses:
+        204:
+          description: "植物が正常に削除された"
+        404:
+          description: "植物が見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /plants/{plantId}/status:
+    parameters:
+      - name: plantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: "植物の水やり状況を取得（前回水やりからの経過日数と前回の水やり間隔）"
+      tags:
+        - plants
+      responses:
+        200:
+          description: "植物の水やり状況"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlantStatus"
+        404:
+          description: "植物が見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /plants/{plantId}/watering:
+    parameters:
+      - name: plantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: "植物の水やり記録を取得"
+      tags:
+        - watering
+      responses:
+        200:
+          description: "水やり記録のリスト"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WateringRecord"
+        404:
+          description: "植物が見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: "植物の水やり記録を追加"
+      tags:
+        - watering
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WateringRecordCreate"
+      responses:
+        201:
+          description: "水やり記録が正常に作成された"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WateringRecord"
+        400:
+          description: "無効なリクエスト"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: "植物が見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /plants/{plantId}/watering/{recordId}:
+    parameters:
+      - name: plantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: recordId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: "植物の水やり記録を削除"
+      tags:
+        - watering
+      responses:
+        204:
+          description: "水やり記録が正常に削除された"
+        404:
+          description: "水やり記録または植物が見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: "認証が必要"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
