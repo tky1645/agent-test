@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	// Initialize Gin router
 	r := gin.Default()
 
 	// Database connection
