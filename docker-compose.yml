@@ -1,4 +1,18 @@
 services:
+  frontend:
+    build:
+      context: ./frontend/plant-watering-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://water-plant.com:18080/api/v1
+    depends_on:
+      ddd_app:
+        condition: service_started
+    networks:
+      - plant-network
+
   ddd_app:
     build:
       context: ./
@@ -14,6 +28,8 @@ services:
       DB_HOST: ddd_rdb
       DB_PORT: 3306
       DB_NAME: sampledb
+    networks:
+      - plant-network
 
   ddd_rdb:
     build:
@@ -25,13 +41,21 @@ services:
       - db_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: mydb
+      MYSQL_DATABASE: sampledb
+      MYSQL_USER: sampleuser
+      MYSQL_PASSWORD: samplepass
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 1m30s
       timeout: 30s
       retries: 5
       start_period: 30s
+    networks:
+      - plant-network
 
 volumes:
   db_data:
+
+networks:
+  plant-network:
+    driver: bridge

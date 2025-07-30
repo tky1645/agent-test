@@ -1,68 +1,41 @@
 import { Plant, PlantCreate, WateringRecord, WateringRecordCreate, PlantStatus } from '../types';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+
 class ApiService {
 
   async getPlants(): Promise<Plant[]> {
-    const mockPlants: Plant[] = JSON.parse(localStorage.getItem('mock_plants') || '[]');
-    
-    if (mockPlants.length === 0) {
-      const defaultPlants: Plant[] = [
-        {
-          id: '1',
-          user_id: 'user-123',
-          name: 'Monstera Deliciosa',
-          description: 'Beautiful tropical plant',
-          image_url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400',
-          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          user_id: 'user-123',
-          name: 'Snake Plant',
-          description: 'Low maintenance succulent',
-          image_url: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400',
-          created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-      localStorage.setItem('mock_plants', JSON.stringify(defaultPlants));
-      return defaultPlants;
+    const response = await fetch(`${API_BASE_URL}/plants`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch plants');
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockPlants;
+    return response.json();
   }
 
   async createPlant(plantData: PlantCreate): Promise<Plant> {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const newPlant: Plant = {
-      id: Date.now().toString(),
-      user_id: 'user-123',
-      ...plantData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    const plants = JSON.parse(localStorage.getItem('mock_plants') || '[]');
-    plants.push(newPlant);
-    localStorage.setItem('mock_plants', JSON.stringify(plants));
-    
-    return newPlant;
+    const response = await fetch(`${API_BASE_URL}/plants`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(plantData),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create plant');
+    }
+    return response.json();
   }
 
   async getPlantStatus(plantId: string): Promise<PlantStatus> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const wateringRecords = JSON.parse(localStorage.getItem(`watering_${plantId}`) || '[]');
-    const plants = JSON.parse(localStorage.getItem('mock_plants') || '[]');
-    const plant = plants.find((p: Plant) => p.id === plantId);
-    
-    if (!plant) {
+    const response = await fetch(`${API_BASE_URL}/plants/${plantId}`);
+    if (!response.ok) {
       throw new Error('Plant not found');
     }
-
+    const plant = await response.json();
+    
+    const wateringResponse = await fetch(`${API_BASE_URL}/plants/${plantId}/watering`);
+    const wateringRecords = wateringResponse.ok ? await wateringResponse.json() : [];
+    
     const lastRecord = wateringRecords.sort((a: WateringRecord, b: WateringRecord) => 
       new Date(b.watered_at).getTime() - new Date(a.watered_at).getTime()
     )[0];
@@ -82,25 +55,25 @@ class ApiService {
   }
 
   async addWateringRecord(plantId: string, recordData: WateringRecordCreate): Promise<WateringRecord> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const newRecord: WateringRecord = {
-      id: Date.now().toString(),
-      plant_id: plantId,
-      ...recordData,
-      created_at: new Date().toISOString()
-    };
-
-    const records = JSON.parse(localStorage.getItem(`watering_${plantId}`) || '[]');
-    records.push(newRecord);
-    localStorage.setItem(`watering_${plantId}`, JSON.stringify(records));
-    
-    return newRecord;
+    const response = await fetch(`${API_BASE_URL}/plants/${plantId}/watering`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(recordData),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to add watering record');
+    }
+    return response.json();
   }
 
   async getWateringRecords(plantId: string): Promise<WateringRecord[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return JSON.parse(localStorage.getItem(`watering_${plantId}`) || '[]');
+    const response = await fetch(`${API_BASE_URL}/plants/${plantId}/watering`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch watering records');
+    }
+    return response.json();
   }
 }
 

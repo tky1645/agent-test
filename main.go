@@ -51,19 +51,22 @@ func main() {
 	// Initialize user handlers
 	user.InitHandlers(db)
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, "ping pong")
-	})
-	r.GET("/users", user.HandlerGET)
-	r.POST("/users", user.HandlerPOST)
-	r.PUT("/users/:id", user.HandlerPUT)
-	// r.GET("/users/:id", user.HandlerFETCH)
-	// r.DELETE("/users/:id", user.HandlerDELETE)
+	api := r.Group("/api/v1")
+	{
+		api.GET("/ping", func(c *gin.Context) {
+			c.JSON(200, "ping pong")
+		})
+		api.GET("/users", user.HandlerGET)
+		api.POST("/users", user.HandlerPOST)
+		api.PUT("/users/:id", user.HandlerPUT)
+		// api.GET("/users/:id", user.HandlerFETCH)
+		// api.DELETE("/users/:id", user.HandlerDELETE)
 
-	r.POST("/plants", plant.HandlerPOST)
-	r.GET("/plants", plant.HandlerGETPlants)
-	r.PATCH("/plants/:id", plant.HandlerPATCH)
-	r.GET("/plants/:plantId/watering", plant.HandlerGETWateringHistory)
+		api.POST("/plants", plant.HandlerPOST)
+		api.GET("/plants", plant.HandlerGETPlants)
+		api.PATCH("/plants/:id", plant.HandlerPATCH)
+		api.GET("/plants/:plantId/watering", plant.HandlerGETWateringHistory)
+	}
 
 	r.Run(":8080")
 }
