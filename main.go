@@ -63,6 +63,7 @@ func main() {
 	r.POST("/plants", plant.HandlerPOST)
 	r.GET("/plants", plant.HandlerGETPlants)
 	r.PATCH("/plants/:id", plant.HandlerPATCH)
+	r.POST("/plants/:id/watering", plant.HandlerPOSTWatering)
 	r.GET("/plants/:plantId/watering", plant.HandlerGETWateringHistory)
 
 	r.Run(":8080")

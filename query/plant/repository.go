@@ -138,3 +138,12 @@ func (r *Repository) FindWateringRecordsByPlantID(plantID string) ([]entities.Wa
 	
 	return records, nil
 }
+
+func (r *Repository) CreateWateringRecord(plantID string, notes *string) error {
+	query := "INSERT INTO watering_records (id, plant_id, watered_at, notes, created_at) VALUES (UUID(), ?, NOW(), ?, NOW())"
+	_, err := r.db.Exec(query, plantID, notes)
+	if err != nil {
+		return fmt.Errorf("failed to create watering record: %v", err)
+	}
+	return nil
+}

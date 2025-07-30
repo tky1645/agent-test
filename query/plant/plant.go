@@ -20,6 +20,7 @@ type IPlantRepository interface {
 	findByID(int) (entities.Plant, error)
 	FindAll(limit int, offset int) ([]entities.Plant, error)
 	FindWateringRecordsByPlantID(plantID string) ([]entities.WateringRecord, error)
+	CreateWateringRecord(plantID string, notes *string) error
 }
 
 type PlantRepository interface {
@@ -30,6 +31,9 @@ type payloadPost struct {
 }
 type paramPatch struct {
 	id int
+}
+type payloadWatering struct {
+	Notes *string `json:"notes"`
 }
 
 
@@ -77,8 +81,6 @@ func HandlerPATCH(c *gin.Context) {
 		c.JSON(404, err)
 		return 
 	}
-	// 変更
-	plant.UpdateWatering()
 
 	// リポジトリ経由で保存
 	if err := r.save(plant); err != nil {
@@ -86,7 +88,6 @@ func HandlerPATCH(c *gin.Context) {
 		return
 	}
 	
-	fmt.Println(plant.WateringDate)
 	c.JSON(200, plant)
 }
 
@@ -158,4 +159,26 @@ func HandlerGETWateringHistory(c *gin.Context) {
 	}
 
 	c.JSON(200, records)
+}
+
+func HandlerPOSTWatering(c *gin.Context) {
+	plantID := c.Param("id")
+	if plantID == "" {
+		c.JSON(400, gin.H{"error": "plant_id is required"})
+		return
+	}
+
+	var payload payloadWatering
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	repo := newRepo()
+	if err := repo.CreateWateringRecord(plantID, payload.Notes); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(201)
 }
