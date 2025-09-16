@@ -82,25 +82,38 @@ class ApiService {
   }
 
   async addWateringRecord(plantId: string, recordData: WateringRecordCreate): Promise<WateringRecord> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const newRecord: WateringRecord = {
-      id: Date.now().toString(),
-      plant_id: plantId,
-      ...recordData,
-      created_at: new Date().toISOString()
-    };
+    const response = await fetch(`http://localhost:8080/plants/${plantId}/watering`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        notes: recordData.notes
+      })
+    });
 
-    const records = JSON.parse(localStorage.getItem(`watering_${plantId}`) || '[]');
-    records.push(newRecord);
-    localStorage.setItem(`watering_${plantId}`, JSON.stringify(records));
-    
+    if (!response.ok) {
+      throw new Error(`Failed to record watering: ${response.statusText}`);
+    }
+
+    const newRecord = await response.json();
     return newRecord;
   }
 
   async getWateringRecords(plantId: string): Promise<WateringRecord[]> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return JSON.parse(localStorage.getItem(`watering_${plantId}`) || '[]');
+    const response = await fetch(`http://localhost:8080/plants/${plantId}/watering`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get watering records: ${response.statusText}`);
+    }
+
+    const records = await response.json();
+    return records;
   }
 }
 
