@@ -258,30 +258,6 @@ paths:
         required: true
         schema:
           type: string
-    get:
-      summary: "特定のユーザーの詳細情報を取得"
-      tags:
-        - users
-      security: []
-      responses:
-        200:
-          description: "ユーザーの詳細情報"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserSimple"
-        400:
-          description: "無効なリクエスト"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        500:
-          description: "サーバーエラー"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     put:
       summary: "ユーザーの情報を更新"
       tags:
@@ -296,35 +272,6 @@ paths:
       responses:
         200:
           description: "ユーザーが正常に更新された"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  id:
-                    type: string
-        400:
-          description: "無効なリクエスト"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        500:
-          description: "サーバーエラー"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-    delete:
-      summary: "ユーザーを削除"
-      tags:
-        - users
-      security: []
-      responses:
-        200:
-          description: "ユーザーが正常に削除された"
           content:
             application/json:
               schema:
