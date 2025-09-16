@@ -401,40 +401,7 @@ sequenceDiagram
 
 ## ローカルDockerアーキテクチャ構成
 
-### パターン1: バックエンド + データベース構成
-
-ルートディレクトリの `docker-compose.yml` を使用した構成です。
-
-```bash
-cd ~/repos/agent-test
-docker-compose up
-```
-
-```mermaid
-graph TB
-    subgraph "Docker Compose - Backend Only"
-        subgraph "ddd_app Container"
-            A[Go Backend Application<br/>Port: 18080:8080]
-        end
-        
-        subgraph "ddd_rdb Container"
-            B[MySQL Database<br/>Port: 13306:3306<br/>DB: sampledb]
-        end
-        
-        A --> B
-    end
-    
-    C[External Client] --> A
-    
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-```
-
-**起動するコンテナ:**
-- `agent-test_ddd_app_1`: Goバックエンドアプリケーション
-- `agent-test_ddd_rdb_1`: MySQLデータベース
-
-### パターン2: フルスタック構成
+### フルスタック構成
 
 フロントエンドディレクトリの `docker-compose.yml` を使用した構成です。
 
@@ -489,4 +456,4 @@ docker-compose logs [service_name]
 
 ### 推奨構成
 
-フルスタック開発には**パターン2**を使用することを推奨します。フロントエンドとバックエンドの連携テストが可能になります。
+この構成により、フロントエンドとバックエンドの連携テストが可能になります。
