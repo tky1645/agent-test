@@ -23,46 +23,41 @@ func newRepo() *Repository {
 }
 
 func (r *Repository) create(plant entities.Plant) error {
-	query := "INSERT INTO plant (name, watering_date, created_at, updated_at) VALUES (?, ?, NOW(), NOW())"
+	query := "INSERT INTO plants (id, name, description, image_url, watering_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())"
 	var wateringDate interface{}
 	if plant.WateringDate != nil {
 		wateringDate = plant.WateringDate.Format("2006-01-02")
 	}
 	
-	result, err := r.db.Exec(query, plant.Name, wateringDate)
+	_, err := r.db.Exec(query, plant.ID, plant.Name, plant.Description, plant.ImageURL, wateringDate)
 	if err != nil {
 		return fmt.Errorf("failed to create plant: %v", err)
 	}
 	
-	id, err := result.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("failed to get last insert id: %v", err)
-	}
-	plant.ID = int(id)
 	return nil
 }
 
 func (r *Repository) save(plant entities.Plant) error {
-	query := "UPDATE plant SET name = ?, watering_date = ?, updated_at = NOW() WHERE id = ?"
+	query := "UPDATE plants SET name = ?, description = ?, image_url = ?, watering_date = ?, updated_at = NOW() WHERE id = ?"
 	var wateringDate interface{}
 	if plant.WateringDate != nil {
 		wateringDate = plant.WateringDate.Format("2006-01-02")
 	}
 	
-	_, err := r.db.Exec(query, plant.Name, wateringDate, plant.ID)
+	_, err := r.db.Exec(query, plant.Name, plant.Description, plant.ImageURL, wateringDate, plant.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update plant: %v", err)
 	}
 	return nil
 }
 
-func (r *Repository) findByID(id int) (entities.Plant, error) {
+func (r *Repository) findByID(id string) (entities.Plant, error) {
 	// DBからの取得
 	return *entities.NewPlant("test"), nil
 }
 
 func (r *Repository) FindAll(limit int, offset int) ([]entities.Plant, error) {
-	query := "SELECT id, name, wateringDate, created_at, updated_at FROM plant LIMIT ? OFFSET ?"
+	query := "SELECT id, name, description, image_url, watering_date, created_at, updated_at FROM plants LIMIT ? OFFSET ?"
 	rows, err := r.db.Query(query, limit, offset)
 	if err != nil {
 		return nil, err
@@ -71,12 +66,14 @@ func (r *Repository) FindAll(limit int, offset int) ([]entities.Plant, error) {
 
 	var plants []entities.Plant
 	for rows.Next() {
-		var id int
+		var id string
 		var name string
+		var description sql.NullString
+		var imageURL sql.NullString
 		var wateringDate sql.NullString
 		var createdAt time.Time
 		var updatedAt time.Time
-		err := rows.Scan(&id, &name, &wateringDate, &createdAt, &updatedAt)
+		err := rows.Scan(&id, &name, &description, &imageURL, &wateringDate, &createdAt, &updatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -98,12 +95,24 @@ func (r *Repository) FindAll(limit int, offset int) ([]entities.Plant, error) {
 			wateringTime = &t
 		}
 
+		var desc *string
+		if description.Valid {
+			desc = &description.String
+		}
+
+		var imgURL *string
+		if imageURL.Valid {
+			imgURL = &imageURL.String
+		}
+
 		plant := entities.Plant{
-			ID:   id,
-			Name: plantName,
+			ID:          id,
+			Name:        plantName,
+			Description: desc,
+			ImageURL:    imgURL,
 			WateringDate: wateringTime,
-			CreatedAt: &createdAt,
-			UpdatedAt: &updatedAt,
+			CreatedAt:   &createdAt,
+			UpdatedAt:   &updatedAt,
 		}
 		plants = append(plants, plant)
 	}
