@@ -19,7 +19,7 @@ type applicationService struct {
 type IPlantRepository interface {
 	create(entities.Plant) error
 	save(entities.Plant) error
-	findByID(int) (entities.Plant, error)
+	findByID(string) (entities.Plant, error)
 	FindAll(limit int, offset int) ([]entities.Plant, error)
 	FindWateringRecordsByPlantID(plantID string) ([]entities.WateringRecord, error)
 	CreateWateringRecord(entities.WateringRecord) error
@@ -29,10 +29,12 @@ type PlantRepository interface {
 }
 
 type payloadPost struct {
-	Name string `json:"name"`
+	Name        string  `json:"name" binding:"required"`
+	Description *string `json:"description"`
+	ImageURL    *string `json:"image_url"`
 }
 type paramPatch struct {
-	id int
+	id string
 }
 
 
@@ -51,7 +53,7 @@ func HandlerPOST(c *gin.Context) {
 		return
 	}
 	// ルートエンティティの作成
-	plant := entities.NewPlant(param.Name)
+	plant := entities.NewPlant(param.Name, entities.WithDescription(param.Description), entities.WithImageURL(param.ImageURL))
 	// リポジトリ経由で保存
 	if err := r.create(*plant); err != nil {
 		c.JSON(500, err)
@@ -107,13 +109,8 @@ func fetchPatch (c *gin.Context)(paramPatch,error){
 		return paramPatch{}, errors.New("id is empty")
 	}
 
-	id, err:= strconv.Atoi(p)
-	if err != nil {
-		return	paramPatch{}, err
-	}
-
 	return paramPatch{
-		id: id,
+		id: p,
 	}, nil
 }
 

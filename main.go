@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 )
@@ -15,6 +16,8 @@ import (
 func main() {
 	// Initialize Gin router
 	r := gin.Default()
+	
+	r.Use(cors.Default())
 
 	// Database connection
 	cfg := mysql.Config{
