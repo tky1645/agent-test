@@ -120,6 +120,15 @@ func (r *Repository) FindAll(limit int, offset int) ([]entities.Plant, error) {
 	return plants, nil
 }
 
+func (r *Repository) CreateWateringRecord(record entities.WateringRecord) error {
+	query := "INSERT INTO watering_records (id, plant_id, watered_at, notes, created_at) VALUES (?, ?, ?, ?, NOW())"
+	_, err := r.db.Exec(query, record.ID, record.PlantID, record.WateredAt, record.Notes)
+	if err != nil {
+		return fmt.Errorf("failed to create watering record: %v", err)
+	}
+	return nil
+}
+
 func (r *Repository) FindWateringRecordsByPlantID(plantID string) ([]entities.WateringRecord, error) {
 	query := "SELECT id, plant_id, watered_at, notes, created_at FROM watering_records WHERE plant_id = ? ORDER BY watered_at DESC"
 	rows, err := r.db.Query(query, plantID)

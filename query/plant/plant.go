@@ -4,8 +4,11 @@ import (
 	"DDD/entities"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // application service
@@ -19,6 +22,7 @@ type IPlantRepository interface {
 	findByID(string) (entities.Plant, error)
 	FindAll(limit int, offset int) ([]entities.Plant, error)
 	FindWateringRecordsByPlantID(plantID string) ([]entities.WateringRecord, error)
+	CreateWateringRecord(entities.WateringRecord) error
 }
 
 type PlantRepository interface {
@@ -122,6 +126,10 @@ type PlantListRequest struct {
 	Offset int `json:"offset" binding:"required"`
 }
 
+type WateringRecordRequest struct {
+	Notes *string `json:"notes"`
+}
+
 func HandlerGETPlants(c *gin.Context) {
 	var req PlantListRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -154,4 +162,59 @@ func HandlerGETWateringHistory(c *gin.Context) {
 	}
 
 	c.JSON(200, records)
+}
+
+func generateUUID() string {
+	return uuid.New().String()
+}
+
+func HandlerPOSTWatering(c *gin.Context) {
+	plantID := c.Param("id")
+	if plantID == "" {
+		c.JSON(400, gin.H{"error": "plant_id is required"})
+		return
+	}
+
+	var req WateringRecordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	repo := newRepo()
+	
+	recordID := generateUUID()
+	
+	record := entities.WateringRecord{
+		ID:        recordID,
+		PlantID:   plantID,
+		WateredAt: time.Now(),
+		Notes:     req.Notes,
+		CreatedAt: time.Now(),
+	}
+
+	if err := repo.CreateWateringRecord(record); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	plantIDInt, err := strconv.Atoi(plantID)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid plant_id"})
+		return
+	}
+	
+	plant, err := repo.findByID(plantIDInt)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "plant not found"})
+		return
+	}
+	
+	plant.UpdateWatering()
+	if err := repo.save(plant); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(201, record)
 }
