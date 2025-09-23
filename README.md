@@ -407,7 +407,7 @@ sequenceDiagram
 
 ```bash
 cd ~/repos/agent-test
-docker-compose up
+docker compose -f frontend/plant-watering-app/docker-compose.yml up --build backend db
 ```
 
 ```mermaid
@@ -439,8 +439,8 @@ graph TB
 フロントエンドディレクトリの `docker-compose.yml` を使用した構成です。
 
 ```bash
-cd ~/repos/agent-test/frontend/plant-watering-app
-docker-compose up
+cd ~/repos/agent-test
+docker compose -f frontend/plant-watering-app/docker-compose.yml up --build
 ```
 
 ```mermaid

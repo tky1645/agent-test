@@ -13,10 +13,10 @@ services:
       - plant-network
 
   backend:
-    image: golang:1.21-alpine
+    image: golang:1.24-alpine
     working_dir: /app
     volumes:
-      - ../../repos/agent-test:/app
+      - ../../:/app
     ports:
       - "8080:8080"
     command: go run main.go
