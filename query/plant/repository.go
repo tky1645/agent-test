@@ -62,7 +62,11 @@ func (r *Repository) FindAll(limit int, offset int) ([]entities.Plant, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			fmt.Printf("Error closing rows: %v\n", err)
+		}
+	}()
 
 	var plants []entities.Plant
 	for rows.Next() {
@@ -135,7 +139,11 @@ func (r *Repository) FindWateringRecordsByPlantID(plantID string) ([]entities.Wa
 	if err != nil {
 		return nil, fmt.Errorf("failed to query watering records: %v", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			fmt.Printf("Error closing rows: %v\n", err)
+		}
+	}()
 
 	var records []entities.WateringRecord
 	for rows.Next() {

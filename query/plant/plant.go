@@ -4,17 +4,12 @@ import (
 	"DDD/entities"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-// application service
-type applicationService struct {
-	repository IPlantRepository
-}
 
 type IPlantRepository interface {
 	create(entities.Plant) error
@@ -198,13 +193,7 @@ func HandlerPOSTWatering(c *gin.Context) {
 		return
 	}
 
-	plantIDInt, err := strconv.Atoi(plantID)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "invalid plant_id"})
-		return
-	}
-	
-	plant, err := repo.findByID(plantIDInt)
+	plant, err := repo.findByID(plantID)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "plant not found"})
 		return

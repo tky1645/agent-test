@@ -49,7 +49,11 @@ func (r *UserRepository) GetAll() ([]entities.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			fmt.Printf("Error closing rows: %v\n", err)
+		}
+	}()
 
 	users := []entities.User{}
 	for rows.Next() {

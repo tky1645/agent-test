@@ -48,7 +48,11 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("MySQLに接続できませんでした: %v", err))
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			fmt.Printf("Error closing database: %v\n", err)
+		}
+	}()
 
 
 	// Initialize user handlers
@@ -69,5 +73,7 @@ func main() {
 	r.POST("/plants/:id/watering", plant.HandlerPOSTWatering)
 	r.GET("/plants/:plantId/watering", plant.HandlerGETWateringHistory)
 
-	r.Run(":8080")
+	if err := r.Run(":8080"); err != nil {
+		panic(fmt.Sprintf("Failed to start server: %v", err))
+	}
 }
