@@ -1,9 +1,17 @@
 # .golangci.yml
 run:
-  # Issue があっても 0 を返す
-  issues-exit-code: 0      # デフォルト 1 → 0 に変更  :contentReference[oaicite:0]{index=0}
+  timeout: 5m
+  issues-exit-code: 1
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+  disable-all: true
 
 issues:
-  # マッチした Issue を完全に抑制
-  exclude:
-    - ".*"                 # すべてのメッセージに一致  :contentReference[oaicite:1]{index=1}
+  exclude-use-default: false

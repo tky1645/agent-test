@@ -46,11 +46,6 @@ func NewPlant(name string, args ...func(*Plant))*Plant{
 	return &p
 }
 
-func withWateringDate(d *time.Time) func(*Plant){
-	return func(p *Plant){
-		p.WateringDate = d
-	}
-}
 
 func (p *Plant) UpdateWatering() {
 	d := time.Now()

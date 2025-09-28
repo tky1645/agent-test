@@ -18,20 +18,6 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) create(plant entities.Plant) error {
-	args := m.Called(plant)
-	return args.Error(0)
-}
-
-func (m *MockRepository) save(plant entities.Plant) error {
-	args := m.Called(plant)
-	return args.Error(0)
-}
-
-func (m *MockRepository) findByID(id int) (entities.Plant, error) {
-	args := m.Called(id)
-	return args.Get(0).(entities.Plant), args.Error(1)
-}
 
 func (m *MockRepository) FindAll(limit int, offset int) ([]entities.Plant, error) {
 	args := m.Called(limit, offset)
